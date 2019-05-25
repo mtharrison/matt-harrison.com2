@@ -23,10 +23,10 @@ From a high-level perspective you can take any c/c++ project, for this example I
     
     <item>
       <title>Ray Tracing: WebAssembly vs JavaScript</title>
-      <link>https://matt-harrison.com/posts/raytracing/</link>
+      <link>https://matt-harrison.com/posts/raytracing-webassembly-vs-javascript/</link>
       <pubDate>Sun, 12 Aug 2018 00:00:00 +0100</pubDate>
       
-      <guid>https://matt-harrison.com/posts/raytracing/</guid>
+      <guid>https://matt-harrison.com/posts/raytracing-webassembly-vs-javascript/</guid>
       <description>I&amp;rsquo;ve spent the last couple of weeks learning about the art and science of Ray Tracing. Ray tracing, for those who aren&amp;rsquo;t familiar is one technique for generating 3d computer graphics. Ray tracing isn&amp;rsquo;t the fastest way to generate 3d images but it&amp;rsquo;s appeal lies in both the realistic effects that can be achieved and in the elegance of simplicity of the technique. This technique is used in movies and for photo-realistic architectural renderings.</description>
     </item>
     
