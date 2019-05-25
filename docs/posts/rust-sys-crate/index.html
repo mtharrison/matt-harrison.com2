@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  
+    
+    Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)
+  
+ | Matt Harrison</title>
+
+
+
+<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+
+
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+  <link rel="stylesheet" href="/css/routeros.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+    <aside class="book-menu fixed">
+      <nav role="navigation">
+<div class="brand">
+    <a href="https://matt-harrison.com/"><img class="profile-image" src="http://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
+  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
+  <p>Software developer and author based in the UK.</p>
+
+  <div class="linksBlock">
+    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="https://github.com/mtharrison">Github</a></p>
+    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
+    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+  </div>
+</div>
+
+
+
+
+    
+
+  
+  
+
+
+
+
+
+
+  <ul>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+    </aside>
+
+    <div class="book-posts">
+      <header class="align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>
+  
+    
+    Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)
+  
+</strong>
+</header>
+
+      
+
+<header class="markdown">
+  <h1>Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)</h1>
+  <h5>
+    <strong>August 22, 2018</strong>
+  </h5>
+</header>
+<article class="markdown">
+
+<p>Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c++. Luckily it&rsquo;s not too complicated to make use of c/c++ projects in Rust. In this short post I&rsquo;ll show you how.</p>
+
+<p>From a high-level perspective you can take any c/c++ project, for this example I&rsquo;m going to use <a href="https://duktape.org/">Duktape</a>, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s <em>very</em> simple to build it - it&rsquo;s just 1 <code>.c</code> file. Hopefully this will make the steps easy to understand and we won&rsquo;t get too bogged down in build system issues.</p>
+
+<p>The steps are:</p>
+
+<ol>
+<li>Create a *-sys create which has your native dependency included along with knowledge of how to build it and exposes a preferably safe API to consumers. We&rsquo;ll be making <code>duktape-sys</code> crate here.</li>
+<li>Make a crate that consumes the <code>-sys</code> crate and uses it to build something cool. Here we&rsquo;ll be building <code>duk</code> which is just a binary which you can pass a JavaScript file too and it will print out the last number on the stack</li>
+</ol>
+
+<h3 id="creating-duktape-sys-crate">Creating duktape-sys crate</h3>
+
+<p>First we&rsquo;ll create a new library crate using cargo:</p>
+
+<pre><code>$ cargo new --lib duktape2-sys
+</code></pre>
+
+<p>We&rsquo;ll download and bundle duktape source code from <a href="https://duktape.org/">https://duktape.org/</a>. I&rsquo;ve added this to a <code>vendor</code> directory:</p>
+
+<pre><code>.
+├── Cargo.lock
+├── Cargo.toml
+├── build.rs
+├── src
+│   └── lib.rs
+├── target
+│   ├── ...
+└── vendor
+    └── duktape-2.3.0
+        └── ...
+</code></pre>
+
+<p>We&rsquo;ll need some dependencies:</p>
+
+<pre><code class="language-toml">// cargo.toml
+
+[package]
+name = &quot;duktape2-sys&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
+
+[dependencies]
+libc = &quot;0.2.0&quot;
+
+[build-dependencies]
+cc = &quot;1.0&quot;
+</code></pre>
+
+<p>We&rsquo;ll use the libc crate here to use the <code>c_void</code> type, we&rsquo;ll pass this around in Rust as a opaque pointer to some memory allocated by C. We&rsquo;ll use the cc crate because it provides us with a crossplatform way to build libduktape from source. Speaking of building duktape, let&rsquo;s create a build.rs file:</p>
+
+<pre><code class="language-rust">// build.rs
+
+extern crate cc;
+
+fn main() {
+    cc::Build::new()
+        .file(&quot;vendor/duktape-2.3.0/src/duktape.c&quot;)
+        .compile(&quot;duktape&quot;);
+}
+</code></pre>
+
+<p>What this magical looking script will do is: when building our crate it will compile  <code>vendor/duktape-2.3.0/src/duktape.c</code> into a static library called <code>libduktape.a</code> inside our <code>target</code> directory and also add a linker library search flag to the rust compiler so that it knows how to link the native library. That&rsquo;s all we need to handle building and linking with the native code!</p>
+
+<p>Let&rsquo;s go and implement a Rust API that we can use in other crates:</p>
+
+<pre><code class="language-rust">// Crates
+
+extern crate libc;
+
+// Use statements
+
+use std::error::Error;
+use std::ffi::CString;
+use std::fmt;
+use std::os::raw::c_char;
+use std::ptr;
+
+// Aliases
+
+use libc::c_void as void;
+
+// Duktape constants
+
+const DUK_COMPILE_EVAL: u32 = 1 &lt;&lt; 3;
+const DUK_COMPILE_SAFE: u32 = 1 &lt;&lt; 7;
+const DUK_COMPILE_NOSOURCE: u32 = 1 &lt;&lt; 9;
+const DUK_COMPILE_STRLEN: u32 = 1 &lt;&lt; 10;
+const DUK_COMPILE_NOFILENAME: u32 = 1 &lt;&lt; 11;
+
+// Define the FFI with duktape
+
+extern &quot;C&quot; {
+    fn duk_create_heap(
+        arg1: *const void,
+        arg2: *const void,
+        arg3: *const void,
+        arg4: *const void,
+        arg5: *const void,
+    ) -&gt; *const void;
+
+    fn duk_destroy_heap(ctx: *const void);
+    fn duk_eval_raw(ctx: *const void, src: *const c_char, arg1: u32, arg2: u32) -&gt; u32;
+    fn duk_get_int(ctx: *const void, idx: i32) -&gt; i32;
+}
+
+// Create a DukHeap struct which just privately holds the pointer
+// to the native duktape heap
+
+pub struct DukHeap {
+    ctx: *const void,
+}
+
+impl DukHeap {
+    // Create a new default heap object
+
+    pub fn new() -&gt; DukHeap {
+        unsafe {
+            let ctx = duk_create_heap(
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+            );
+
+            DukHeap { ctx }
+        }
+    }
+
+    // Evaluates a JavaScript script within the current context
+    // Returns the i32 on top of the stack or an error
+
+    pub fn eval_script(&amp;mut self, script: &amp;str) -&gt; Result&lt;i32, Box&lt;Error&gt;&gt; {
+        let code = CString::new(script)?;
+
+        let flags = 0
+            | DUK_COMPILE_EVAL
+            | DUK_COMPILE_NOSOURCE
+            | DUK_COMPILE_STRLEN
+            | DUK_COMPILE_NOFILENAME
+            | DUK_COMPILE_SAFE;
+
+        let res = unsafe { duk_eval_raw(self.ctx, code.as_ptr(), 0, flags) };
+
+        if res != 0 {
+            return Err(Box::new(DukError::new(&quot;Eval failed&quot;)));
+        }
+
+        let result = unsafe { duk_get_int(self.ctx, -1) };
+
+        Ok(result)
+    }
+}
+
+impl Drop for DukHeap {
+    // When our DukHeap is dropped we also destroy the native heap
+
+    fn drop(&amp;mut self) {
+        unsafe {
+            duk_destroy_heap(self.ctx);
+        }
+    }
+}
+
+// A custom error type
+
+#[derive(Debug)]
+struct DukError {
+    details: String,
+}
+
+impl DukError {
+    fn new(msg: &amp;str) -&gt; DukError {
+        DukError {
+            details: msg.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for DukError {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+        write!(f, &quot;{}&quot;, self.details)
+    }
+}
+
+impl Error for DukError {
+    fn description(&amp;self) -&gt; &amp;str {
+        &amp;self.details
+    }
+}
+
+// A simple test
+
+#[cfg(test)]
+mod tests {
+
+    use super::DukHeap;
+
+    #[test]
+    fn my_test() {
+        let mut heap = DukHeap::new();
+        let script = &quot;12 * 65 / 3&quot;;
+        let result = heap.eval_script(script);
+
+        assert_eq!(result.unwrap(), 260);
+    }
+}
+</code></pre>
+
+<p>Running <code>cargo test</code> tells us that things are working quite nicely!</p>
+
+<p>The next step is to use this sys-crate in some consumer crate.</p>
+
+<p>Let&rsquo;s create a new crate called <code>dukrs</code>:</p>
+
+<pre><code>$ cargo new --bin dukjs
+</code></pre>
+
+<p>We&rsquo;ll add our <code>duktape2-sys</code> crate as a dependency using the relative path as we won&rsquo;t be publishing it to crates.io.</p>
+
+<pre><code>// cargo.toml
+
+[package]
+name = &quot;dukjs&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
+
+[dependencies]
+duktape2-sys = { path = &quot;../duktape2-sys&quot; }
+</code></pre>
+
+<p>Let&rsquo;s write our <code>main.rs</code> to load a script passed as an argument to our binary and then execute it and print the result.</p>
+
+<pre><code>// main.rs
+
+extern crate duktape2_sys;
+
+use std::env;
+use std::fs::File;
+use std::io::Read;
+
+use duktape2_sys::DukHeap;
+
+fn main() {
+    let filename = env::args()
+        .nth(1)
+        .expect(&quot;Provide a script name to execute&quot;);
+
+    let mut file = File::open(filename).expect(&quot;Cannot read file&quot;);
+    let mut script = String::new();
+    file.read_to_string(&amp;mut script).expect(&quot;Can't read script&quot;);
+
+    let mut heap = DukHeap::new();
+
+    let result = heap.eval_script(&amp;script).expect(&quot;Couldn't evaluate script&quot;);
+
+    println!(&quot;Result was {}&quot;, result);
+}
+</code></pre>
+
+<p>Pretty simple, right? Let&rsquo;s create a script to test this on, we&rsquo;ll write a simple script using js to calculate the 20th fibonacci number:</p>
+
+<pre><code>// fib.js
+
+function fibonacci(num) {
+  if (num == 0) return 0;
+  if (num == 1) return 1;
+
+  return fibonacci(num - 1) + fibonacci(num - 2);
+}
+
+fibonacci(20);
+</code></pre>
+
+<p>Let&rsquo;s build our binary:</p>
+
+<pre><code>$ cargo build --release
+</code></pre>
+
+<p>Now let&rsquo;s give it a spin to see if it all works:</p>
+
+<pre><code>➜  dukjs git:(master) ✗ ./target/release/dukjs fib.js
+Result was 6765
+</code></pre>
+
+<p>That&rsquo;s pretty sweet. So to recap: we created a sys-crate that can compile a native C library and link with a safe Rust wrapper API. We build a simple crate to consume that sys-crate which creates a binary that knows how to evaulate JavaScript.</p>
+</article>
+
+      
+    </div>
+  </main>
+
+  
+  
+
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-49752272-2');
+  </script>
+</body>
+
+</html>

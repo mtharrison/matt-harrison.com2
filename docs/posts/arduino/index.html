@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  
+    
+    Capturing infrared packets with Arduino and plotting them with HTML5 canvas
+  
+ | Matt Harrison</title>
+
+
+
+<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+
+
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+  <link rel="stylesheet" href="/css/routeros.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+    <aside class="book-menu fixed">
+      <nav role="navigation">
+<div class="brand">
+    <a href="https://matt-harrison.com/"><img class="profile-image" src="http://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
+  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
+  <p>Software developer and author based in the UK.</p>
+
+  <div class="linksBlock">
+    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="https://github.com/mtharrison">Github</a></p>
+    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
+    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+  </div>
+</div>
+
+
+
+
+    
+
+  
+  
+
+
+
+
+
+
+  <ul>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+    </aside>
+
+    <div class="book-posts">
+      <header class="align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>
+  
+    
+    Capturing infrared packets with Arduino and plotting them with HTML5 canvas
+  
+</strong>
+</header>
+
+      
+
+<header class="markdown">
+  <h1>Capturing infrared packets with Arduino and plotting them with HTML5 canvas</h1>
+  <h5>
+    <strong>October 27, 2013</strong>
+  </h5>
+</header>
+<article class="markdown"><p>I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).</p>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup1.JPG" alt="Setup" /></p>
+
+<p>I found the fantastic <a href="https://github.com/shirriff/Arduino-IRremote">Arduino-IRremote</a> library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.</p>
+
+<p>It turned out my remote conformed to the NEC protocol. The NEC protocol sends:</p>
+
+<ul>
+<li>a 9ms leading pulse burst (16 times the pulse burst length used for a logical data bit)</li>
+<li>a 4.5ms space</li>
+<li>the 8-bit address for the receiving device</li>
+<li>the 8-bit logical inverse of the address</li>
+<li>the 8-bit command</li>
+<li>the 8-bit logical inverse of the command
+a final 562.5µs pulse burst to signify the end of message transmission.</li>
+</ul>
+
+<p>So the total data bits are 32 and the data package may look like this:</p>
+
+<pre><code class='language-c'>∨ device address  ∨ command
+10110100 01001011 11100111 00011000
+         ∧  ~address       ∧ ~command</code></pre>
+
+<p>I wired the sensor with my arduino as following:</p>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/breadboard.png" alt="Breadboard" /></p>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup2.JPG" alt="Wiring" /></p>
+
+<p>I then uploaded the following sketch to the Arduino (this is almost exactly the same as the example sketch provided with the library except I write the data as binary rather than hex.</p>
+
+<pre><code class='language-c'>#include <IRremote.h>
+int RECV_PIN = 11;
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
+void setup()
+{
+  Serial.begin(9600);
+  irrecv.enableIRIn();
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    Serial.println(results.value, BIN);
+    irrecv.resume();
+  }
+}</code></pre>
+
+<p>I can now start collecting commands from the sensor but I need something to do with them. I used the great <a href="https://github.com/voodootikigod/node-serialport">node-serialport</a> module for Node to collect data from the serial port. I also used the <a href="http://expressjs.com/">Express framework</a> and <a href="http://socket.io/">Socket.IO</a> to create a persistent connection to a webpage. The server code for Node is below:</p>
+
+<pre><code class='language-javascript'>var serialport = require("serialport");
+var SerialPort = serialport.SerialPort
+var serialPort = new SerialPort("/dev/tty.usbmodem1411", {
+    parser: serialport.parsers.readline("\n"),
+    baudrate: 9600
+});
+
+serialPort.open(function () {
+    var app = require('express')()
+    , server = require('http').createServer(app)
+    , io = require('socket.io').listen(server);
+
+    server.listen(8080);
+
+    app.get('/', function (req, res) {
+        res.sendfile(__dirname + '/index.html');
+    });
+
+    io.sockets.on('connection', function (socket) {
+        serialPort.on('data', function(data) {
+            io.sockets.emit('data', { data: data});
+        });
+    });
+});</code></pre>
+
+<p>When the websocket client recieves a <code>data</code> event, it passes the data to a javascript function which then draws a logic chart on the screen using canvas, showing the bits recieved from the remote. This has the protocol headers stripped and is just the command.</p>
+
+<pre><code class='language-javascript'>//Takes a string like 101010001010
+function drawChart(string){
+
+        ctx.strokeStyle = '#ff0000';
+        ctx.clearRect(0, 0, 960, 360);
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        ctx.moveTo(0,330);
+
+        var bits = string.split("");
+        var travel = Math.floor(960/string.length);
+
+        var lastBit = "30";
+        var x = 0;
+
+        for(var i in bits){
+            if(bits[i] === "1"){
+                if(lastBit === "1"){
+                    ctx.lineTo(x+travel, 30);
+                    x = x + travel;
+                    ctx.stroke();
+                } else {
+                    ctx.lineTo(x, 30);
+                    ctx.lineTo(x+travel, 30);
+                    x = x + travel;
+                    ctx.stroke();
+                }
+            } else {
+                if(lastBit === "1"){
+                    ctx.lineTo(x, 330);
+                    ctx.lineTo(x+travel, 330);
+                    x = x + travel;
+                    ctx.stroke();
+                } else {
+                    ctx.lineTo(x+travel, 330);
+                    x = x + travel;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.font = "bold 16px Menlo";
+            ctx.fillText(bits[i], x-23, 355);
+            ctx.fillText(bits[i], x-23, 15);
+
+            lastBit = bits[i];
+        }
+        ctx.strokeStyle = '#000000';
+
+        ctx.lineWidth = 0.5;
+        for(var i in bits){
+            ctx.moveTo(travel * i,360);
+            ctx.lineTo(travel * i, 0);
+        }
+
+        ctx.stroke();
+    };</code></pre>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/plot.png" alt="Logic plot" /></p>
+
+<p>When I have a IR LED I can start replaying these commands and switching my TV on and off through the web, I&rsquo;ll post updates of this when I get round to it.</p>
+</article>
+
+      
+    </div>
+  </main>
+
+  
+  
+
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-49752272-2');
+  </script>
+</body>
+
+</html>

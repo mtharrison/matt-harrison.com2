@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  
+    
+    Supercharge your frontend with Rust 🦀 and Wasm 🚀
+  
+ | Matt Harrison</title>
+
+
+
+<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+
+
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+  <link rel="stylesheet" href="/css/routeros.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+    <aside class="book-menu fixed">
+      <nav role="navigation">
+<div class="brand">
+    <a href="https://matt-harrison.com/"><img class="profile-image" src="http://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
+  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
+  <p>Software developer and author based in the UK.</p>
+
+  <div class="linksBlock">
+    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="https://github.com/mtharrison">Github</a></p>
+    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
+    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+  </div>
+</div>
+
+
+
+
+    
+
+  
+  
+
+
+
+
+
+
+  <ul>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+    </aside>
+
+    <div class="book-posts">
+      <header class="align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>
+  
+    
+    Supercharge your frontend with Rust 🦀 and Wasm 🚀
+  
+</strong>
+</header>
+
+      
+
+<header class="markdown">
+  <h1>Supercharge your frontend with Rust 🦀 and Wasm 🚀</h1>
+  <h5>
+    <strong>July 10, 2018</strong>
+  </h5>
+</header>
+<article class="markdown">
+
+<h4 id="a-quick-guide-to-creating-packaging-and-using-your-first-webassembly-module-with-rust-wasm-pack-and-friends">A quick guide to creating, packaging and using your first WebAssembly module with Rust, wasm-pack and friends&hellip;</h4>
+
+<p>I&rsquo;m guessing if you&rsquo;re here you&rsquo;ve already heard about <a href="https://webassembly.org/">WebAssembly</a> and you just want to get started building something without reading pages of specification, complex explanations or stewing your brains in binary.</p>
+
+<p>If you don&rsquo;t know what WebAssembly (AKA Wasm) is yet, it&rsquo;s a new low-level language that can be executed by modern browsers, that traditionally only ran JavaScript. Much like x86 assembly, most programmers aren&rsquo;t expected to write WebAssembly by hand. Instead we can use a higher-level language and compile it down to WebAssembly. A popular choice is <a href="https://www.rust-lang.org/en-US/">Rust</a>, in part this is because the community is putting <a href="https://github.com/rustwasm/team">so much work</a> into creating great tooling to make this a pleasurable experience for developers.</p>
+
+<p>To help you get your feet wet with Rust and Wasm I&rsquo;m going to show you a super-simple example. You don&rsquo;t need to already know any Rust or have experience programming in it, but you will need need to <a href="https://rustwasm.github.io/book/setup.html">follow the instructions here to install the toolchain</a>.</p>
+
+<p>We&rsquo;re going to build a factorial calculator that allows us to choose the input in the browser and will call into our Wasm module written in Rust to calculate the factorial and write it back to the browser, as shown below:</p>
+
+<p><img src="https://mattharrison.s3.amazonaws.com/blog/factorial.gif" alt="factorial" /></p>
+
+<p>Follow along with the code below or check out my code on <a href="https://github.com/mtharrison/wasmpack-example-factorial">Github</a>.</p>
+
+<h2 id="creating-a-webassembly-module-in-rust">Creating a WebAssembly module in Rust</h2>
+
+<p>First things first, we need to write the code that will comprise our WebAssembly module. To keep things simple, it&rsquo;s just going to be a single Rust function that computes the <a href="https://en.wikipedia.org/wiki/Factorial">factorial</a> for a given number.</p>
+
+<h3 id="writing-a-simple-rust-library">Writing a simple Rust library</h3>
+
+<p>Assuming you have Rust installed, find a directory to work in and type:</p>
+
+<pre><code>cargo new --lib factorial
+</code></pre>
+
+<p>This will create a new directory to contain your Rust project:</p>
+
+<pre><code>factorial
+├── Cargo.toml
+└── src
+    └── lib.rs
+</code></pre>
+
+<p>First we write our <code>factorial()</code> function. <code>factorial()</code> takes as an argument an unsigned 32-bit integer and returns an unsigned 32-bit integer.</p>
+
+<h4 id="factorial-src-lib-rs"><code>factorial/src/lib.rs</code></h4>
+
+<pre><code class="language-rust">pub fn factorial(n: u32) -&gt; u32 {
+    if n == 1 {
+        return 1;
+    }
+    n * factorial(n - 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::factorial;
+
+    #[test]
+    fn factorial_test() {
+        assert_eq!(factorial(1), 1);
+        assert_eq!(factorial(2), 2);
+        assert_eq!(factorial(3), 6);
+        assert_eq!(factorial(4), 24);
+        assert_eq!(factorial(10), 3628800);
+    }
+}
+</code></pre>
+
+<p>I&rsquo;ve also written some simple test cases for the <code>factorial()</code> function. Rust allows you to write your tests in the same file as implementation like this. the <code>#[cfg(test)]</code> annotation tells the Rust compiler to exclude this code from non-test builds.</p>
+
+<p>We can go ahead and run the tests with <code>cargo test</code>:</p>
+
+<pre><code>running 1 test
+test tests::factorial_test ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+</code></pre>
+
+<p>Looking good! Our <code>factorial()</code> function appears to work as advertised. We <em>could</em> stop here and compile this Rust library down to Wasm and use it directly. However, there are some tools that make our life easier.</p>
+
+<h3 id="glueing-things-together-with-wasm-bindgen">Glueing things together with Wasm-bindgen</h3>
+
+<p>Let&rsquo;s edit <code>Cargo.toml</code> which is a configuration file used by the Rust compiler:</p>
+
+<h4 id="factorial-cargo-toml"><code>factorial/Cargo.toml</code></h4>
+
+<pre><code>[package]
+name = &quot;factorial&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
+
+[lib]
+crate-type = [&quot;cdylib&quot;]
+
+[dependencies]
+wasm-bindgen = &quot;0.2&quot;
+</code></pre>
+
+<p>We&rsquo;ve added the <code>crate-type = [&quot;cdylib&quot;]</code> option under <code>[lib]</code> which tells the Rust compiler that we&rsquo;re producing a dynamic library intended to be used from another language.</p>
+
+<p>We&rsquo;ve also added <code>wasm-bindgen = &quot;0.2&quot;</code> under <code>[dependencies]</code>. Wasm-bindgen is a project that helps people to glue together Rust/Wasm and JavaScript in a seamless way. We won&rsquo;t dig too much into this in this post but I plan to do some follow-ups showing exactly what the potential of wasm-bindgen is.</p>
+
+<p>We&rsquo;ll need to add some more things to our <code>lib.rs</code> file now too:</p>
+
+<h4 id="factorial-src-lib-rs-1"><code>factorial/src/lib.rs</code></h4>
+
+<pre><code>// The annotation above loads some experimental features needed by wasm-bindgen
+
+#![feature(proc_macro, wasm_import_module, wasm_custom_section)]
+
+// This tells Rust that we're using the wasm_bindgen crate
+
+extern crate wasm_bindgen;
+
+// Include some code from the wasm_bindgen crate
+
+use wasm_bindgen::prelude::*;
+
+// Export this function to JavaScript bindings
+
+#[wasm_bindgen]
+pub fn factorial(n: u32) -&gt; u32 {
+    if n == 1 {
+        return 1;
+    }
+    n * factorial(n - 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::factorial;
+
+    #[test]
+    fn factorial_test() {
+        assert_eq!(factorial(1), 1);
+        assert_eq!(factorial(2), 2);
+        assert_eq!(factorial(3), 6);
+        assert_eq!(factorial(4), 24);
+        assert_eq!(factorial(10), 3628800);
+    }
+}
+
+</code></pre>
+
+<h3 id="leveraging-npm-with-wasm-pack">Leveraging npm with wasm-pack</h3>
+
+<p>Typically, whenever we want to package up some functionality written in JavaScript and reuse it on the frontend, we usually publish a package on npm and have it as a dependency in our frontend project. Wouldn&rsquo;t it be cool if we could so the same with a Wasm module too and just import it like any regular JS module? Well, you can do exactly that thanks to wasm-pack!</p>
+
+<p>To get started, simply install wasm-pack and type <code>wasm-pack init .</code> inside the <code>factorial</code> directory. This might take a couple of minutes but by the end, if you look in the <code>pkg</code> folder, what you have is a package ready to publish on npm that contains a <code>package.json</code>, a compiled WebAssembly module and a JavaScript file that contains some glue to call into WebAssembly in an efficient manner.</p>
+
+<p>We&rsquo;re done for now on the Rust and Wasm side. Let&rsquo;s jump into the frontend world!</p>
+
+<h2 id="integrating-webassembly-on-the-frontend-with-webpack">Integrating WebAssembly on the frontend with Webpack</h2>
+
+<p>I&rsquo;m going to create a directory to hold the frontend, I&rsquo;ll call mine <code>frontend</code>. First thing I&rsquo;ll do is to run <code>npm init --yes</code> to create a <code>package.json</code>. I&rsquo;m going to install <code>webpack</code> and <code>webpack-serve</code>. Webpack will take care of loading our WebAssembly module and bundling our scripts into a single js file that the browser can load. <code>webpack-serve</code> is a simple development server to serve up our files.</p>
+
+<h3 id="making-our-wasm-module-a-dependency">Making our wasm module a dependency</h3>
+
+<p>We also want the wasm module that we wrote before to be a dependency of our frontend so we can call into the exported functions. I&rsquo;m not going to go ahead and publish the package to npm but instead I&rsquo;ll make use of the file dependency feature in npm to reference the directory containing my pkg.</p>
+
+<p>I&rsquo;ll also add a script that I can run later with <code>npm run serve</code> in order to use the webpack development server to serve the website files.</p>
+
+<h4 id="frontend-package-json"><code>frontend/package.json</code></h4>
+
+<pre><code>...
+&quot;dependencies&quot;: {
+	&quot;webpack&quot;: &quot;^4.6.0&quot;,
+	&quot;webpack-serve&quot;: &quot;^1.0.4&quot;,
+	&quot;factorial&quot;: &quot;file:../factorial/pkg&quot;
+},
+&quot;scripts&quot;: {
+	&quot;serve&quot;: &quot;webpack-serve --config ./webpack.config.js --content public&quot;
+}
+...
+</code></pre>
+
+<p>Go ahead and run <code>npm install</code> to install those dependencies.</p>
+
+<h3 id="creating-a-simple-ui">Creating a simple UI</h3>
+
+<p>Next up let&rsquo;s build a very simple HTML page that will display our factorial app. It&rsquo;s going to consist of a basic HTML 5 boilerplate, a single <code>&lt;div&gt;</code> element with a <code>number</code> type <code>&lt;input&gt;</code> element that has a min of 1 and a max of 12. The reason for the max of 12 is so we don&rsquo;t overflow the 32-bit integers that we&rsquo;re working with in Rust. There&rsquo;s also an element to hold the output, and that&rsquo;s it.</p>
+
+<h4 id="frontend-public-index-html"><code>frontend/public/index.html</code></h4>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+	&lt;meta charset=&quot;UTF-8&quot;&gt;
+	&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+	&lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+	&lt;title&gt;Wasmpack Example - Factorial&lt;/title&gt;
+	&lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot;&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+	&lt;div id=&quot;fac&quot;&gt;
+		&lt;p&gt;factorial(&lt;input type=&quot;number&quot; id=&quot;input&quot; min=&quot;1&quot; max=&quot;12&quot; value=&quot;1&quot;&gt;)&lt;/p&gt;
+		&lt;p&gt;=&lt;/p&gt;
+		&lt;p&gt;&lt;span id=&quot;output&quot;&gt;1&lt;/span&gt;&lt;/p&gt;
+	&lt;/div&gt;
+
+	&lt;script src=&quot;bundle.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>We&rsquo;ll want to add a bit of basic styling in a css file to make the page look nicer. I&rsquo;m just going to center things and use a nice monospaced font, you know to make it look more technical ;)</p>
+
+<h4 id="frontend-public-style-css"><code>frontend/public/style.css</code></h4>
+
+<pre><code>body {
+	padding: 0;
+	margin: 0;
+}
+
+#fac {
+	font-size: 60px;
+	font-weight: bold;
+	font-family: monospace;
+	text-align: center;
+	padding-top: 50px;
+}
+
+#input {
+	height: 50px;
+	width: 85px;
+	border: 0;
+	font-size: 60px;
+	font-weight: bold;
+	font-family: monospace;
+	outline: 0;
+}
+
+#input::selection {
+	background: none;
+}
+
+p {
+	padding: 0px;
+	margin: 0px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+   opacity: 1;
+}
+</code></pre>
+
+<h3 id="hooking-up-to-webassembly">Hooking up to WebAssembly</h3>
+
+<p>Finally we can get to the meat of our frontend. In the entrypoint JS file <code>main.js</code> we&rsquo;ll first want to import the WebAsssembly module from our <code>node_modules</code>. There&rsquo;s a slight gotcha here. Typically you can use the following syntax to import modules in esmodules style:</p>
+
+<pre><code>import * as factorial from 'factorial';
+</code></pre>
+
+<p>However this doesn&rsquo;t work right now with WebAssembly modules because they must be loaded and compiled asyncronously, instead we can use <code>import()</code> function which returns us a promise. I&rsquo;ll wrap the whole file in an <code>async</code> IIFE so I can use <code>await</code> syntax.</p>
+
+<p>We&rsquo;re simply going to grab the input value from the <code>&lt;input&gt;</code> element on the page, parse it as an integer, then call into the Wasm module passing that input as an argument. We&rsquo;ll then take the return value and copy it into the output element.</p>
+
+<p>We&rsquo;ll do that both on initial page load and anytime a new input is made.</p>
+
+<h4 id="frontend-lib-main-js"><code>frontend/lib/main.js</code></h4>
+
+<pre><code>(async function () {
+
+	const module = await import('factorial');
+
+	const input = document.getElementById('input');
+	const output = document.getElementById('output');
+
+	const calculate = () =&gt; {
+
+		const number = parseInt(input.value);
+		const result = module.factorial(number);
+		output.innerText = `${result}`;
+	};
+
+	// Calculate on load
+
+	calculate();
+
+	// Calculate on input
+
+	input.addEventListener('input', calculate);
+
+})();
+
+</code></pre>
+
+<h3 id="configuring-webpack">Configuring Webpack</h3>
+
+<p>We need to write a <code>webpack.config.js</code> file to tell Webpack how to bundle our code up. Our config is very simple, it says to take <code>lib/main.js</code> as the entry point and bundle that file and all its import, then to output a file at <code>public/bundle.js</code>. This is a file that we can then load into the browser using a <code>&lt;script&gt;</code> tag. Webpack will add the code required to load the WebAssembly module too, so we don&rsquo;t need to write that manually, pretty cool!</p>
+
+<h4 id="frontend-webpack-config-js"><code>frontend/webpack.config.js</code></h4>
+
+<pre><code>const path = require('path');
+
+module.exports = {
+	entry: './lib/main.js',
+	output: {
+		path: path.resolve(__dirname, 'public'),
+		filename: 'bundle.js',
+	},
+	mode: 'production'
+};
+</code></pre>
+
+<h3 id="test-drive">Test drive</h3>
+
+<p>If you run <code>npm run serve</code> inside of your <code>frontend</code> folder and open up <code>http://localhost:8080</code> in the browser you should see everything working! If not, please post a comment below and I&rsquo;ll try to help you out :)</p>
+
+<h2 id="where-next">Where next?</h2>
+
+<p>This article has only scratched the absolute surface of what&rsquo;s possible with Rust+Wasm. I&rsquo;m going to be digging more into myself over the coming months and I&rsquo;ll keep blogging with more interesting examples.</p>
+
+<p>In the meantime checkout some of these resources on Rust + Wasm:</p>
+
+<ul>
+<li><a href="https://rustwasm.github.io/book/">The Rust Wasm book</a></li>
+<li><a href="https://github.com/rustwasm/wasm-bindgen">Wasm Bindgen on Github</a></li>
+<li><a href="https://github.com/rustwasm/wasm-pack">Wasm Pack on Github</a></li>
+<li><a href="https://webassembly.org/">Official WebAssembly site</a></li>
+</ul>
+</article>
+
+      
+    </div>
+  </main>
+
+  
+  
+
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-49752272-2');
+  </script>
+</body>
+
+</html>

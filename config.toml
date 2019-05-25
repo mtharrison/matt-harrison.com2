@@ -1,4 +1,5 @@
-baseURL = "http://example.org/"
+baseURL = "https://matt-harrison.com/"
 languageCode = "en-us"
 title = "Matt Harrison"
 theme = "hugo-book"
+publishDir = "docs"

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  
+    
+    Building a complex web component with Facebook&#39;s React Library
+  
+ | Matt Harrison</title>
+
+
+
+<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+
+
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+  <link rel="stylesheet" href="/css/routeros.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+    <aside class="book-menu fixed">
+      <nav role="navigation">
+<div class="brand">
+    <a href="https://matt-harrison.com/"><img class="profile-image" src="http://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
+  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
+  <p>Software developer and author based in the UK.</p>
+
+  <div class="linksBlock">
+    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="https://github.com/mtharrison">Github</a></p>
+    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
+    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+  </div>
+</div>
+
+
+
+
+    
+
+  
+  
+
+
+
+
+
+
+  <ul>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+    </aside>
+
+    <div class="book-posts">
+      <header class="align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>
+  
+    
+    Building a complex web component with Facebook&#39;s React Library
+  
+</strong>
+</header>
+
+      
+
+<header class="markdown">
+  <h1>Building a complex web component with Facebook&#39;s React Library</h1>
+  <h5>
+    <strong>January 3, 2014</strong>
+  </h5>
+</header>
+<article class="markdown">
+
+<p><strong>Edit (12-2016):</strong> This article has been updated for React 0.14 and ES2015</p>
+
+<p>React looks set to be the hot front end technology of 2014 with <a href="https://twitter.com/floydophone/status/418207644919545856">some</a> even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:</p>
+
+<iframe src="http://mtharrison.github.io/react-resistance-calculator/" style="height: 550px; width: 700px; border: none; display:block; margin:auto" ></iframe>
+
+<p>I&rsquo;m going to show you how to create a complex, interactive web component with <a href="facebook.github.io/react/">React</a>. To this end, I will be creating a 5 band resistance calculator. This component will consist of an SVG diagram of a electronic resistor component with coloured bands, indicators of resistance and tolerance and dropdowns for changing the colours of the 5 bands.</p>
+
+<p>Initially I wanted to use SVG gradients for the resistor fills, but they&rsquo;re not supported by React/JSX (<strong>Update:</strong> I&rsquo;ve opened a <a href="https://github.com/facebook/react/pull/819">pull request</a> to fix this).</p>
+
+<p>Firstly though, let&rsquo;s talk a little about <a href="facebook.github.io/react/">React</a>.</p>
+
+<h3 id="what-is-react">What is react?</h3>
+
+<p><a href="facebook.github.io/react/">React</a> from Facebook is:</p>
+
+<blockquote>
+<p>A Javascript Library for Creating User Interfaces</p>
+</blockquote>
+
+<p>When React was introduced to the community, there was mixed feelings, with some accusing Facebook of flying in the face of time-tested and accepted standards. This didn&rsquo;t faze the React team and they actually adopted a snarky tweet as their strapline!</p>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/cowboy-tweet.png" alt="Image of the finished product" /></p>
+
+<p>I won&rsquo;t give you a complete breakdown of the library, I suggest you read all the info on their page and have a look at the project on <a href="https://github.com/facebook/react">Github</a>.</p>
+
+<p>After assessing the library myself I&rsquo;ve found both pros and cons but I think overall the pros outweigh the cons.</p>
+
+<p>Pros:</p>
+
+<ul>
+<li>Nice declarative style, you just specific how your UI should look without worry about manipulating the DOM to keep it that way</li>
+<li>JSX looks like HTML, so it&rsquo;s intuitive for designers and is quicker to read and visualise</li>
+<li>Once you&rsquo;ve got the hang of it, it&rsquo;s quite quick to develop in</li>
+<li>It makes no assumptions about the rest of your stack so you can integrate it with anything</li>
+<li>Components are composable and/or nestable</li>
+<li>There are some big names behind it or using it in production (Facebook, instagram, Khan Academy)</li>
+<li>It&rsquo;s fast because it uses a virtual DOM diff to calculate operations.</li>
+</ul>
+
+<p>Cons:</p>
+
+<ul>
+<li>If you use the JSX extension, it will probably break a lot of your syntax highlighting in your IDE</li>
+<li>You&rsquo;ll need to find a way to get JSHint working with your code (there&rsquo;s a fork here: <a href="https://npmjs.org/package/jsxhint">https://npmjs.org/package/jsxhint</a>)</li>
+<li>Mixing logic with Markup feels a bit dirty.</li>
+</ul>
+
+<h3 id="building-the-calculator">Building the calculator</h3>
+
+<p>Now on to the fun stuff. I will be making the calculator by combining several subcomponents together. Below is a diagram of the different components that will make up the calculator:</p>
+
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/resistance-calculator-annotated.png" alt="Subcomponents" /></p>
+
+<p>Here&rsquo;s how the hierarchy looks in JSX:</p>
+
+<pre><code class="language-markup"> &lt;ResistanceCalculator&gt;
+    &lt;OhmageIndicator /&gt;
+    &lt;ToleranceIndicator /&gt;
+    &lt;SVGResistor  /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;ResetButton /&gt;
+&lt;/ResistanceCalculator&gt;</code></pre>
+
+<p>I&rsquo;ll post the code for each component here with a small discussion of what&rsquo;s going on inside.</p>
+
+<h4 id="components-ohmageindicator-js">components/OhmageIndicator.js</h4>
+
+<p>This component displays the actual calculated ohmage of the resistor. Notice it doesn&rsquo;t actually do the calculation, a higher level component takes care of that. The only logic in this component is concerned with rendering an appropriate unit of resistance, be it Ω, KΩ or MΩ.</p>
+
+<p>This component only expects 1 <code>prop</code> to be passed, <code>resistance</code>.</p>
+
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+const OhmageIndicator = ({ resistance }) => {
+    const formatResistance = () => {
+        const r = parseFloat(resistance);
+        const MILLION = 1000000;
+        const THOUSAND = 1000;
+
+        if (r > MILLION)
+            return(r / MILLION).toFixed(1) + "MΩ";
+        if(r > THOUSAND)
+            return (r / THOUSAND).toFixed(1) + "KΩ";
+        return r.toFixed(1) + "Ω";
+    }
+    return (
+        &lt;p id="resistor-value"&gt;
+            {formatResistance()}
+        &lt;/p&gt;
+    );
+};
+
+OhmageIndicator.propTypes = {
+    resistance: React.PropTypes.number.isRequired
+};
+
+export default OhmageIndicator</code></pre>
+
+<h4 id="components-toleranceindicator-js">components/ToleranceIndicator.js</h4>
+
+<p>Similar to the OhmageIndicator, this component isn&rsquo;t very smart, it just takes a numeric value as a <code>prop</code> and shows it as a ±% or shows nothing if the tolerance is 0.</p>
+
+<p>The function <code>printTolerance()</code> is acting like a view helper in a templating language, taking a data model and prettifying it for ouput.</p>
+
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+const ToleranceIndicator = ({ tolerance }) => {
+    const formatTolerance = () => {
+        return tolerance === 0 ?
+            "" :
+            "±" + tolerance + "%";
+    };
+    return (
+        &lt;p id="tolerance-value"&gt;
+            {formatTolerance()}
+        &lt;/p&gt;
+    );
+};
+
+ToleranceIndicator.propTypes = {
+    tolerance: React.PropTypes.number.isRequired
+};
+
+export default ToleranceIndicator;</code></pre>
+
+<h4 id="components-svgresistor-js">components/SVGResistor.js</h4>
+
+<p>This component dynamically renders an SVG drawing of the resistor. It has a method to translate a band&rsquo;s numeric value to its corresponding colour via an object passed in as a <code>prop</code>.</p>
+
+<pre><code class="language-javascript">import React from 'react';
+
+const SVGResistor = ({ bands, bandOptions }) => {
+    const bandPositions = [70,100,130,160,210];
+    return (
+        &lt;svg width={300} height={100} version="1.1" xmlns="http://www.w3.org/2000/svg"&gt;
+            &lt;rect x={0} y={26} rx={5} width={300} height={7} fill="#d1d1d1" /&gt;
+            &lt;rect x={50} y={0} rx={15} width={200} height={57} fill="#FDF7EB" /&gt;
+            {bands.map((b, i) =>  (
+                &lt;rect
+                    key={i}
+                    x={bandPositions[i]}
+                    width={7}
+                    height={57}
+                    fill={bandOptions[b].color}
+                /&gt;
+            ))}
+        </svg>
+    );
+};
+
+SVGResistor.propTypes = {
+    bands: React.PropTypes.array.isRequired,
+    bandOptions: React.PropTypes.array.isRequired
+};
+
+export default SVGResistor;
+</code></pre>
+
+<h4 id="components-bandselector-js">components/BandSelector.js</h4>
+
+<p>This renders a select menu. To communicate changes back to the owner, the owner has passed a callback as a <code>prop</code>, thus creating a line of communication back to the owner. The component will call that callback with some arguments to notify the owner it needs to update its state.</p>
+
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+class BandSelector extends Component {
+    constructor(props) {
+        super(props);
+    }
+    handleChange() {
+        this.props.onChange(this.props.band, parseInt(this.refs.menu.value));
+    }
+    render(){
+        const { band, options, value } = this.props;
+        return (
+            &lt;div className="band-option"&gt;
+                &lt;label&gt;Band {band + 1}&lt;/label&gt;
+                &lt;select ref="menu" value={value} onChange={::this.handleChange}&gt;
+                {options.map((o, i) => (
+                    &lt;option key={i} value={i}>{o.label}</option>
+                ))}
+                &lt;/select&gt;
+            &lt;/div&gt;
+        );
+    }
+};
+
+BandSelector.propTypes = {
+    onChange: React.PropTypes.func.isRequired,
+    band: React.PropTypes.number.isRequired,
+    options: React.PropTypes.array.isRequired,
+    value: React.PropTypes.number.isRequired
+};
+
+export default BandSelector;
+</code></pre>
+
+<h4 id="components-index-js-resistancecalculator">components/index.js (ResistanceCalculator)</h4>
+
+<p>This component is the glue that holds the calculator together and manages all the <code>state</code>, passes <code>props</code> and performs the resistance calculation.</p>
+
+<p>When the state in this component changes, and props that have been passed will also update the children&rsquo;s DOM.</p>
+
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+import BandSelector from './BandSelector';
+import OhmageIndicator from './OhmageIndicator';
+import ResetButton from './ResetButton';
+import SVGResistor from './SVGResistor';
+import ToleranceIndicator from './ToleranceIndicator';
+
+class ResistanceCalculator extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            bands: props.config.bands.map(v => v.value || 0),
+            resistance: 0,
+            tolerance: 0
+        };
+    }
+    getMultiplier() {
+        if(this.state.bands[3] == 10)
+            return 0.1;
+        if(this.state.bands[3] == 11)
+            return 0.01;
+        return Math.pow(10, this.state.bands[3]);
+
+    }
+    calculateResistance() {
+        return this.getMultiplier() *
+            ((100 * this.state.bands[0]) +
+            (10  * this.state.bands[1]) +
+            (1   * this.state.bands[2]));
+    }
+    updateBandState(band, value) {
+        const { bandOptions } = this.props.config;
+        const { bands } = this.state;
+        bands[band] = value;
+        this.setState({
+            bands,
+            resistance: this.calculateResistance(),
+            tolerance: bandOptions[this.state.bands[4]].tolerance
+        });
+    }
+    reset() {
+        this.setState({
+            bands: [0,0,0,0,0],
+            resistance: 0,
+            tolerance: 0
+        });
+    }
+    render() {
+        const { bandOptions, bands: bandsConfig } = this.props.config;
+        const { bands, resistance, tolerance } = this.state;
+        return (
+            &lt;div&gt;
+                &lt;SVGResistor bands={bands} bandOptions={bandOptions} /&gt;
+                &lt;OhmageIndicator resistance={resistance} /&gt;
+                &lt;ToleranceIndicator tolerance={tolerance} /&gt;
+                {bands.map((b, i) => {
+                    const options = bandOptions.filter((b, j) => (
+                        bandsConfig[i].omitOptions.indexOf(j) === -1
+                    ));
+                    return (
+                        &lt;BandSelector
+                            options={options}
+                            key={i}
+                            band={i}
+                            value={b}
+                            onChange={::this.updateBandState}
+                        /&gt;
+                    );
+                })}
+                &lt;ResetButton onClick={::this.reset}/&gt;
+            &lt;/div&gt;
+        );
+    }
+};
+
+ResistanceCalculator.propTypes = {
+    config: React.PropTypes.object.isRequired
+};
+
+export default ResistanceCalculator;
+</code></pre>
+
+<p>Lastly to instantiate the component and mount it to the DOM, passing in some configuration:</p>
+
+<h4 id="main-js">main.js</h4>
+
+<pre><code class="language-javascript">import React, { Component } from 'react';
+import { render } from 'react-dom';
+
+import ResistanceCalculator from './components/ResistanceCalculator';
+
+const config = {
+    bandOptions: [
+        { tolerance: 0, color: "black", label: "None" },
+        { tolerance: 1, color: "brown", label: "Brown"},
+        { tolerance: 2, color: "red", label: "Red"},
+        { color: "orange", label: "Orange"},
+        { color: "yellow", label: "Yellow"},
+        { tolerance: 0.5, color: "green", label: "Green"},
+        { tolerance: 0.25, color: "blue", label: "Blue"},
+        { tolerance: 0.10, color: "violet", label: "Violet"},
+        { tolerance: 0.05, color: "grey", label: "Grey"},
+        { color: "white", label: "White"},
+        { tolerance: 5, color: "#FFD700", label: "Gold"},
+        { tolerance: 10, color: "#C0C0C0", label: "Silver"}
+    ],
+    bands: [
+        { omitOptions: [10,11] },
+        { omitOptions: [10,11] },
+        { omitOptions: [10,11] },
+        { omitOptions: [8,9] },
+        { omitOptions: [3,4,9] }
+    ]
+};
+
+render(&lt;ResistanceCalculator config={config} /&gt;, document.getElementById('container'));
+</code></pre>
+
+<h3 id="the-result">The result</h3>
+
+<iframe src="http://mtharrison.github.io/react-resistance-calculator/" style="height: 550px; width: 700px; border: none; display:block; margin:auto" ></iframe>
+
+<p>Please feel free to comment with suggestions or improvements.</p>
+</article>
+
+      
+    </div>
+  </main>
+
+  
+  
+
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-49752272-2');
+  </script>
+</body>
+
+</html>
