@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  
+    
+    Understanding Deno: A dive into the internals
+  
+ | Matt Harrison</title>
+
+
+
+<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+
+
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+
+  <link rel="stylesheet" href="/css/routeros.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+  <input type="checkbox" style="display: none" id="menu-control" />
+  <main class="flex container">
+    <aside class="book-menu fixed">
+      <nav role="navigation">
+<div class="brand">
+    <a href="https://matt-harrison.com/"><img class="profile-image" src="http://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
+  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
+  <p>Software developer and author based in the UK.</p>
+
+  <div class="linksBlock">
+    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="https://github.com/mtharrison">Github</a></p>
+    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
+    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+  </div>
+</div>
+
+
+
+
+    
+
+  
+  
+
+
+
+
+
+
+  <ul>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+    </aside>
+
+    <div class="book-posts">
+      <header class="align-center justify-between book-header">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" alt="Menu" />
+  </label>
+  <strong>
+  
+    
+    Understanding Deno: A dive into the internals
+  
+</strong>
+</header>
+
+      
+
+<header class="markdown">
+  <h1>Understanding Deno: A dive into the internals</h1>
+  <h5>
+    <strong>May 29, 2019</strong>
+  </h5>
+</header>
+<article class="markdown">
+
+<p>I&rsquo;ve recently been poking around with <a href="https://github.com/denoland/deno">Deno</a> - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main current interests; JavaScript and Rust. I&rsquo;ve been writing Node professionally now for around 5 years and Rust very <em>unprofessionally</em> for just over a year.</p>
+
+<p>Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the world in a talk titled <a href="https://www.youtube.com/watch?v=M3BM9TB-8yA">10 things I regret about node.js</a>. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript&rsquo;s webiness and actually works with rather than against V8&rsquo;s inherent sandbox. I definitely recommend you listen to the full talk if you haven&rsquo;t already.</p>
+
+<p>I&rsquo;m planning to contribute to the Deno project because I think it will be a good way to learn more about Rust on a real-world project with considerable complexity. To dip my toes in before I try to pick up a real issue, I decided that I&rsquo;d try to add a couple of dummy &ldquo;features&rdquo; to Deno. It was quite a fun and enlightening exploration so I wanted to share it with the hope that it will also be useful for any other would-be contributors to Deno in the future.</p>
+
+<h3 id="architecture-of-deno">Architecture of Deno</h3>
+
+<p>Many parallels can be drawn between Deno&rsquo;s architecture an how a Unix operating system is organised. In Deno, you have an unprivileged user-space, where code is written in Typescript and executed in a JavaScript sandbox by V8. To interact with the system, the user-code must dispatch messages (like system calls) to the privileged side, which is written in Rust and linked with V8. This comparison isn&rsquo;t just my own observation but actually stated in the <a href="https://deno.land/manual.html">Deno manual</a>:</p>
+
+<table>
+<thead>
+<tr>
+<th style="text-align:right;"><strong>Linux</strong></th>
+<th style="text-align:left;"><strong>Deno</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">Processes</td>
+<td style="text-align:left;">Web Workers</td>
+</tr>
+<tr>
+<td style="text-align:right;">Syscalls</td>
+<td style="text-align:left;">Ops</td>
+</tr>
+<tr>
+<td style="text-align:right;">File descriptors (fd)</td>
+<td style="text-align:left;"><a href="#resources">Resource ids (rid)</a></td>
+</tr>
+<tr>
+<td style="text-align:right;">Scheduler</td>
+<td style="text-align:left;">Tokio</td>
+</tr>
+<tr>
+<td style="text-align:right;">Userland: libc++ / glib / boost</td>
+<td style="text-align:left;">deno_std</td>
+</tr>
+<tr>
+<td style="text-align:right;">/proc/\$\$/stat</td>
+<td style="text-align:left;"><a href="#metrics">Deno.metrics()</a></td>
+</tr>
+<tr>
+<td style="text-align:right;">man pages</td>
+<td style="text-align:left;">deno types</td>
+</tr>
+</tbody>
+</table>
+
+<p>This can be contrasted to the situation we have in Node.js where the interface between JS and native code is a lot less contained. Native modules can punch holes into JavaScript from anywhere inserting functions and possibly security issues to the global scope of your scripts.</p>
+
+<h2 id="getting-and-building-deno">Getting and building Deno</h2>
+
+<p><a href="https://deno.land/manual.html#buildfromsource">First, be sure to follow the instructions here to download and build Deno on your machine.</a></p>
+
+<h2 id="adding-a-typescript-feature-to-the-userspace-api">Adding a TypeScript feature to the userspace API</h2>
+
+<p>Let&rsquo;s start off easy, first let&rsquo;s add to the Deno TypeScript namespace that&rsquo;s available to all programs via <code>global.Deno</code>.</p>
+
+<p>Let&rsquo;s add a new file under <code>js/number.ts</code> and add the following contents:</p>
+
+<pre><code class="language-js">export async function myNumber(): Promise&lt;number&gt; {
+  return Promise.resolve(42);
+}
+</code></pre>
+
+<p>We&rsquo;ll need to expose this on Deno namespace by adding the following to <code>js/deno.ts</code>:</p>
+
+<pre><code class="language-js">export { myNumber } from  &quot;./number&quot;;
+</code></pre>
+
+<p>Rebuild Deno by running <code>./tools/build.py</code>. You might be surprised that we need to rebuild the <code>deno</code> executable after this change but Deno actually compiles the TypeScript in the core library into a JS bundle then builds all this code into the Deno binary as a V8 snapshot, hence why we need to recompile and link the main executable. This speeds up the startup of the Deno process which is great for users but slows down development a little.</p>
+
+<p><em>aside</em>:I think there might be a way to avoid actually rebuilding the binary and have the core library loaded and runtime but I couldn&rsquo;t figure out how to do this, if you know please shout me @mt_harrison.</p>
+
+<p>Let&rsquo;s write a Deno script now to test our new core function, I&rsquo;m going to put my example scripts inside <code>examples</code>.</p>
+
+<pre><code>mkdir examples
+touch examples/number.ts
+</code></pre>
+
+<p>Inside <code>examples/number.ts</code> we add:</p>
+
+<pre><code class="language-js">async function main() {
+
+  console.log(`The magic number is ${await Deno.myNumber()}`);
+};
+
+main();
+</code></pre>
+
+<p>Deno doesn&rsquo;t support top-level <code>await</code> yet so we wrap our code in a <code>async function main() {}</code> function to get around that.</p>
+
+<p>We can test our script out now by running <code>./target/debug/deno run examples/number.ts</code>. All being well you should see:</p>
+
+<pre><code>The magic number is 42
+</code></pre>
+
+<p>This is all well and good but it&rsquo;s not as exciting as getting our paws muddied by writing some Rust, right? Agreed? Then onwards&hellip;</p>
+
+<h2 id="some-deno-rust-ts-basics">Some Deno Rust &lt;-&gt; TS basics</h2>
+
+<p>Pure JavaScript in V8 has limited functionality, aside from the language features of course. Anything else that interacts with the operating system, such as networking, timers and process control needs to be provided by the host environment. That host environment in the case of Node.js is written in C++ and for Deno it&rsquo;s written in Rust.</p>
+
+<p>First let&rsquo;s touch upon how we communicate between TS and Rust. Remember when I mentioned that <a href="https://github.com/nodejs/node/blob/master/src/node_process_object.cc#L165">Node.js pokes holes into V8</a>, injecting functions for each of the features it provides. Deno takes a different approach, instead it only pokes a single hole into V8 and provides a single function <code>dispatch()</code> that can be called from unpriviledged code. <code>dispatch()</code> accepts a message which may be one of many types, along with additional arguments and a buffer. <code>dispatch()</code> returns a message (or a <code>Promise</code> over a message). By using this very controlled method of message passing, Deno exerts much more restraint over the sandbox.</p>
+
+<p>But what is this message? And isn&rsquo;t it expensive to keep passing them around? Rust uses <a href="https://google.github.io/flatbuffers/">Flatbuffers</a> to encode typed messages which are passing between Rust and JS as byte arrays. The message fields can be read in place very efficiently with no (de)serialization required.</p>
+
+<p>[insert diagram here]</p>
+
+<h2 id="adding-a-synchronous-rust-feature-to-the-privileged-side">Adding a synchronous Rust feature to the privileged side</h2>
+
+<p>To add a new feature to the Rust side we&rsquo;ll need to define a new Flatbuffers message. Well two actually, one for the request and one for the response. To do this we open up <code>cli/msg.fbs</code> and add our new messages:</p>
+
+<pre><code>...
+
+table MyPid {}
+
+table MyPidRes {
+  pid: uint32;
+}
+
+root_type Base
+</code></pre>
+
+<p>Node that our request message type <code>MyPid</code> has no fields because there&rsquo;s no arguments we need to pass along. The response message <code>MyPidRes</code> has just one, the pid as a <code>uint32</code>.</p>
+
+<p>This file will be compiled with <code>flatc</code> - the flatbuffers compiler, into both Rust and TypeScript code which provides an API for reading and writing the Flatbuffers. If you&rsquo;ve ever use Protocol Buffers and protoc before, this is very similar. We don&rsquo;t need to invoke <code>flatc</code> ourselves though as this is taken care of by the build system (which is <a href="https://chromium.googlesource.com/chromium/src/tools/gn/+/48062805e19b4697c5fbd926dc649c78b6aaa138/README.md">GN</a> by the way).</p>
+
+<p>Now we need to write the code that will receive the <code>MyPid</code> message and return the <code>MyPidRes</code> message in Rust and vice-versa in TypeScript. Let&rsquo;s start with the TypeScript side. We&rsquo;ll add this in <code>js/myPid.ts</code>:</p>
+
+<pre><code class="language-js">import * as flatbuffers from &quot;./flatbuffers&quot;;
+import * as msg from &quot;gen/cli/msg_generated&quot;;
+import { sendSync } from &quot;./dispatch&quot;;
+import { assert } from &quot;./util&quot;;
+
+
+export function myPid(): number {
+  const builder = flatbuffers.createBuilder();
+  const inner = msg.MyPid.createMyPid(builder);
+
+  const baseRes = sendSync(builder, msg.Any.MyPid, inner)!;
+  assert(msg.Any.MyPidRes === baseRes.innerType());
+  const res = new msg.MyPidRes();
+  assert(baseRes.inner(res) !== null);
+
+  return res.pid();
+}
+</code></pre>
+
+<p>A lot of the TypeScript core code has similar boilerplate to it: we first create a flatbuffers builder and then create an instance of the message type we want to dispatch, in this case <code>MyPid</code>. Then we call <code>sendSync</code> which is a wrapper around <code>Deno.core.dispatch()</code>. We get a generic response message back, which we convert to a specialized type by calling <code>message.inner(T)</code>.</p>
+
+<p>We can then get at the fields of the response by calling methods corresponding to their names.</p>
+
+<p>All that&rsquo;s left now is to write the Rust side of things. We&rsquo;ll do this in <code>cli/ops.rs</code>. Deno refers to it&rsquo;s commands between Rust and TS, or its syscalls or Ops. To handle the <code>MyPid</code> message we need to write a new op.</p>
+
+<p>First we&rsquo;ll add a clause to the statement that matches on the type of the incoming message:</p>
+
+<pre><code class="language-rust">  msg::Any::Write =&gt; Some(op_write),
+  msg::Any::MyPid =&gt; Some(op_my_pid),       // we're adding this
+  msg::Any::Resolve =&gt; Some(op_resolve),
+</code></pre>
+
+<p>We need to write the function <code>op_my_pid()</code> too:</p>
+
+<pre><code class="language-rust">fn op_my_pid(
+  _state: &amp;ThreadSafeState,
+  base: &amp;msg::Base&lt;'_&gt;,
+  _data: Option&lt;PinnedBuf&gt;,
+) -&gt; Box&lt;OpWithError&gt; {
+  let builder = &amp;mut FlatBufferBuilder::new();
+  let inner = msg::MyPidRes::create(
+    builder,
+    &amp;msg::MyPidResArgs {
+      pid: std::process::id(),
+    },
+  );
+
+  ok_future(serialize_response(
+    base.cmd_id(),
+    builder,
+    msg::BaseArgs {
+      inner: Some(inner.as_union_value()),
+      inner_type: msg::Any::MyPidRes,
+      ..Default::default()
+    },
+  ))
+}
+</code></pre>
+
+<p>There&rsquo;s quite a lot going on here so I&rsquo;ll explain things line by line&hellip;</p>
+
+<h2 id="adding-an-asynchronous-rust-feature-to-the-privileged-side">Adding an asynchronous Rust feature to the privileged side&hellip;</h2>
+
+<h2 id="writing-some-tests">Writing some tests&hellip;</h2>
+
+<p>coming soon&hellip;nobody is actually going to read this, right?</p>
+</article>
+
+      
+    </div>
+  </main>
+
+  
+  
+
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-49752272-2');
+  </script>
+</body>
+
+</html>

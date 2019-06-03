@@ -3,6 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://matt-harrison.com/posts/</loc>
+    <lastmod>2019-05-29T19:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://matt-harrison.com/posts/extending-deno/</loc>
+    <lastmod>2019-05-29T19:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://matt-harrison.com/</loc>
     <lastmod>2019-05-19T23:29:08+01:00</lastmod>
   </url>
@@ -10,12 +21,6 @@
   <url>
     <loc>https://matt-harrison.com/posts/rust-sys-crate/</loc>
     <lastmod>2018-08-22T00:00:00+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://matt-harrison.com/posts/</loc>
-    <lastmod>2018-08-22T00:00:00+01:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>

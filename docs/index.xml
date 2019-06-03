@@ -12,6 +12,16 @@
     
     
     <item>
+      <title>Understanding Deno: A dive into the internals</title>
+      <link>https://matt-harrison.com/posts/extending-deno/</link>
+      <pubDate>Wed, 29 May 2019 19:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/extending-deno/</guid>
+      <description>I&amp;rsquo;ve recently been poking around with Deno - the &amp;ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&amp;rdquo;. The reason being is that this lies at the intersection of a couple of my main current interests; JavaScript and Rust. I&amp;rsquo;ve been writing Node professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the world in a talk titled 10 things I regret about node.</description>
+    </item>
+    
+    <item>
       <title>Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)</title>
       <link>https://matt-harrison.com/posts/rust-sys-crate/</link>
       <pubDate>Wed, 22 Aug 2018 00:00:00 +0100</pubDate>
