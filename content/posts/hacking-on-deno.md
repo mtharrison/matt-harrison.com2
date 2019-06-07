@@ -2,7 +2,7 @@
 title: "An introduction to hacking on Deno"
 date: 2019-05-29T19:00:00+01:00
 ---
-I've recently been poking around with [Deno](https://github.com/denoland/deno) - the "secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio". The reason being is that this lies at the intersection of a couple of my main current interests; JavaScript and Rust. I've been writing Node professionally now for around 5 years and Rust very _unprofessionally_ for just over a year.
+I've recently been playing around with [Deno](https://github.com/denoland/deno) - the "secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio". The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I've been writing JS professionally now for around 5 years and Rust very _unprofessionally_ for just over a year.
 
 Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled [10 things I regret about node.js](https://www.youtube.com/watch?v=M3BM9TB-8yA) at JSConf EU 2018. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript's web heritage and works with rather against the grain of V8's sandbox. I definitely recommend you listen to the full talk if you haven't already.
 
@@ -217,7 +217,7 @@ Every op receives this `state` parameter, a shared reference to a `ThreadSafeSta
 pub struct ThreadSafeState(Arc<State>);
 ```
 
-We can see it's a struct that wraps a `State` struct in an [`Arc`](https://doc.rust-lang.org/std/sync/struct.Arc.html) so it can be shared accross threads. `Struct` definition looks like:
+We can see it's a struct that wraps a `State` struct in an [`Arc`](https://doc.rust-lang.org/std/sync/struct.Arc.html) so it can be shared accross threads. `State` definition looks like:
 
 ```rust
 // Isolate cannot be passed between threads but ThreadSafeState can.
@@ -243,6 +243,44 @@ Ok, let's look at the next part:
 ```
 
 The `base` parameter is just a reference to the generic flatbuffers message we received, which we'll see how to turn it into a specialized instance later. `data` is an `Option<PinnedBuf>`. `data` is basically a writable buffer of bytes that has been borrowed from JavaScript. We'd use this if we wanted to efficiently transfer raw bytes to JavaScript, for instance `data` is used in `read/write` Ops. In this example we've prefixed `data` and `state` with `_` as we're not using them.
+
+```rust
+5.  ) -> Box<OpWithError> {
+6.    let builder = &mut FlatBufferBuilder::new();
+7.    let inner = msg::MyPidRes::create(
+8.      builder,
+9.     &msg::MyPidResArgs {
+10.       pid: std::process::id(),
+11.    },
+12.  );
+13.
+14.  ok_future(serialize_response(
+15.    base.cmd_id(),
+16.    builder,
+17.    msg::BaseArgs {
+18.      inner: Some(inner.as_union_value()),
+19.      inner_type: msg::Any::MyPidRes,
+20.      ..Default::default()
+21.    },
+22.  ))
+23.}
+```
+
+The op function returns a `Box<OpWithError>` which is defined as:
+
+```rust
+pub type OpWithError = dyn Future<Item = Buf, Error = DenoError> + Send;
+```
+
+So it can be anything that implements the `Future` trait where it's associated `Item` is a `Buf` and `Error` is a `DenoError`. `Buf` is just a slice of bytes which will contain a flatbuffer:
+
+```rust
+pub type Buf = Box<[u8]>;
+```
+
+Inside the op we write code quite similar to that which we wrote in TS. We build a `MyPidRes` message with a `pid` field which we get from the Rust stdlib function `std::process::id()`. Then we serialze the flatbuffer into a `Buf` and return an ok future. Note that this was all blocking.
+
+Next we'll implement an op which will actually take some time, so needs to wire up into Tokio a bit more and return a `Promise` on the TypeScript side.
 
 ## Adding an asynchronous Rust feature to the privileged side...
 

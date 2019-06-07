@@ -3,14 +3,14 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://matt-harrison.com/posts/</loc>
+    <loc>https://matt-harrison.com/posts/hacking-on-deno/</loc>
     <lastmod>2019-05-29T19:00:00+01:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://matt-harrison.com/posts/extending-deno/</loc>
+    <loc>https://matt-harrison.com/posts/</loc>
     <lastmod>2019-05-29T19:00:00+01:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
