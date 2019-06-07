@@ -282,8 +282,78 @@ Inside the op we write code quite similar to that which we wrote in TS. We build
 
 Next we'll implement an op which will actually take some time, so needs to wire up into Tokio a bit more and return a `Promise` on the TypeScript side.
 
-## Adding an asynchronous Rust feature to the privileged side...
+## Adding an asynchronous Rust feature to the privileged side
 
-## Writing some tests...
+This time we're going to write a function `resolve()` in TypeScript that will resolve a hostname for us to an IP address using DNS. The signature will be:
 
-coming soon...nobody is actually going to read this, right?
+```js
+async function resolve(hostname: string): Promise<string>;
+```
+
+First step is to implement the TS side. This looks very similar to the synchronous example from before. The only differences are that this time:
+
+- We use `syncAsyc()` instead of `sendSync()`
+- We're returned a `Promise` over a message instead of the message itself
+
+```js
+import * as flatbuffers from "./flatbuffers";
+import * as msg from "gen/cli/msg_generated";
+import { sendAsync } from "./dispatch";
+import { assert } from "./util";
+
+
+export async function resolve(hostname: string): Promise<string> {
+  const builder = flatbuffers.createBuilder();
+  const host = builder.createString(hostname);
+  const inner = msg.Resolve.createResolve(builder, host);
+
+  const baseRes = await sendAsync(builder, msg.Any.Resolve, inner)!;
+  assert(msg.Any.ResolveRes === baseRes.innerType());
+  const res = new msg.ResolveRes();
+  assert(baseRes.inner(res) !== null);
+
+  return res.ip()!;
+}
+```
+
+On the Rust side, things are too different either. Because there's no asyncronous support for DNS in Tokio, we've used `blocking()` from Tokio. This is a function that will take a blocking closure returning a Future and execute that closure in a Thread pool returning a `Future`. It's very useful for wrapping non-async code.
+
+```rust
+use std::net::ToSocketAddrs;
+
+fn op_resolve(
+  _state: &ThreadSafeState,
+  base: &msg::Base<'_>,
+  _data: Option<PinnedBuf>,
+) -> Box<OpWithError> {
+  let inner = base.inner_as_resolve().unwrap();
+  let cmd_id = base.cmd_id();
+  let hostname = String::from(inner.hostname().unwrap());
+
+  blocking(base.sync(), move || -> OpResult {
+
+    let mut addrs_iter = hostname.to_socket_addrs().unwrap();
+    let ip_addr = addrs_iter.find(|addr| addr.is_ipv4()).unwrap();
+    let ip = format!("{}", ip_addr);
+
+    let builder = &mut FlatBufferBuilder::new();
+    let ip_fbs_string = builder.create_string(&ip);
+    let inner = msg::ResolveRes::create(
+      builder,
+      &msg::ResolveResArgs { ip: Some(ip_fbs_string) },
+    );
+
+    Ok(serialize_response(
+      cmd_id,
+      builder,
+      msg::BaseArgs {
+        inner: Some(inner.as_union_value()),
+        inner_type: msg::Any::ResolveRes,
+        ..Default::default()
+      },
+    ))
+  })
+}
+```
+
+
