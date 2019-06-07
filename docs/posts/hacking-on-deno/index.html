@@ -109,7 +109,7 @@ https://github.com/alex-shpak/hugo-book
 </header>
 <article class="markdown">
 
-<p>I&rsquo;ve recently been poking around with <a href="https://github.com/denoland/deno">Deno</a> - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main current interests; JavaScript and Rust. I&rsquo;ve been writing Node professionally now for around 5 years and Rust very <em>unprofessionally</em> for just over a year.</p>
+<p>I&rsquo;ve recently been playing around with <a href="https://github.com/denoland/deno">Deno</a> - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very <em>unprofessionally</em> for just over a year.</p>
 
 <p>Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled <a href="https://www.youtube.com/watch?v=M3BM9TB-8yA">10 things I regret about node.js</a> at JSConf EU 2018. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript&rsquo;s web heritage and works with rather against the grain of V8&rsquo;s sandbox. I definitely recommend you listen to the full talk if you haven&rsquo;t already.</p>
 
@@ -312,7 +312,7 @@ export function myPid(): number {
 <pre><code class="language-rust">pub struct ThreadSafeState(Arc&lt;State&gt;);
 </code></pre>
 
-<p>We can see it&rsquo;s a struct that wraps a <code>State</code> struct in an <a href="https://doc.rust-lang.org/std/sync/struct.Arc.html"><code>Arc</code></a> so it can be shared accross threads. <code>Struct</code> definition looks like:</p>
+<p>We can see it&rsquo;s a struct that wraps a <code>State</code> struct in an <a href="https://doc.rust-lang.org/std/sync/struct.Arc.html"><code>Arc</code></a> so it can be shared accross threads. <code>State</code> definition looks like:</p>
 
 <pre><code class="language-rust">// Isolate cannot be passed between threads but ThreadSafeState can.
 // ThreadSafeState satisfies Send and Sync.
@@ -337,11 +337,113 @@ pub struct State {
 
 <p>The <code>base</code> parameter is just a reference to the generic flatbuffers message we received, which we&rsquo;ll see how to turn it into a specialized instance later. <code>data</code> is an <code>Option&lt;PinnedBuf&gt;</code>. <code>data</code> is basically a writable buffer of bytes that has been borrowed from JavaScript. We&rsquo;d use this if we wanted to efficiently transfer raw bytes to JavaScript, for instance <code>data</code> is used in <code>read/write</code> Ops. In this example we&rsquo;ve prefixed <code>data</code> and <code>state</code> with <code>_</code> as we&rsquo;re not using them.</p>
 
-<h2 id="adding-an-asynchronous-rust-feature-to-the-privileged-side">Adding an asynchronous Rust feature to the privileged side&hellip;</h2>
+<pre><code class="language-rust">5.  ) -&gt; Box&lt;OpWithError&gt; {
+6.    let builder = &amp;mut FlatBufferBuilder::new();
+7.    let inner = msg::MyPidRes::create(
+8.      builder,
+9.     &amp;msg::MyPidResArgs {
+10.       pid: std::process::id(),
+11.    },
+12.  );
+13.
+14.  ok_future(serialize_response(
+15.    base.cmd_id(),
+16.    builder,
+17.    msg::BaseArgs {
+18.      inner: Some(inner.as_union_value()),
+19.      inner_type: msg::Any::MyPidRes,
+20.      ..Default::default()
+21.    },
+22.  ))
+23.}
+</code></pre>
 
-<h2 id="writing-some-tests">Writing some tests&hellip;</h2>
+<p>The op function returns a <code>Box&lt;OpWithError&gt;</code> which is defined as:</p>
 
-<p>coming soon&hellip;nobody is actually going to read this, right?</p>
+<pre><code class="language-rust">pub type OpWithError = dyn Future&lt;Item = Buf, Error = DenoError&gt; + Send;
+</code></pre>
+
+<p>So it can be anything that implements the <code>Future</code> trait where it&rsquo;s associated <code>Item</code> is a <code>Buf</code> and <code>Error</code> is a <code>DenoError</code>. <code>Buf</code> is just a slice of bytes which will contain a flatbuffer:</p>
+
+<pre><code class="language-rust">pub type Buf = Box&lt;[u8]&gt;;
+</code></pre>
+
+<p>Inside the op we write code quite similar to that which we wrote in TS. We build a <code>MyPidRes</code> message with a <code>pid</code> field which we get from the Rust stdlib function <code>std::process::id()</code>. Then we serialze the flatbuffer into a <code>Buf</code> and return an ok future. Note that this was all blocking.</p>
+
+<p>Next we&rsquo;ll implement an op which will actually take some time, so needs to wire up into Tokio a bit more and return a <code>Promise</code> on the TypeScript side.</p>
+
+<h2 id="adding-an-asynchronous-rust-feature-to-the-privileged-side">Adding an asynchronous Rust feature to the privileged side</h2>
+
+<p>This time we&rsquo;re going to write a function <code>resolve()</code> in TypeScript that will resolve a hostname for us to an IP address using DNS. The signature will be:</p>
+
+<pre><code class="language-js">async function resolve(hostname: string): Promise&lt;string&gt;;
+</code></pre>
+
+<p>First step is to implement the TS side. This looks very similar to the synchronous example from before. The only differences are that this time:</p>
+
+<ul>
+<li>We use <code>syncAsyc()</code> instead of <code>sendSync()</code></li>
+<li>We&rsquo;re returned a <code>Promise</code> over a message instead of the message itself</li>
+</ul>
+
+<pre><code class="language-js">import * as flatbuffers from &quot;./flatbuffers&quot;;
+import * as msg from &quot;gen/cli/msg_generated&quot;;
+import { sendAsync } from &quot;./dispatch&quot;;
+import { assert } from &quot;./util&quot;;
+
+
+export async function resolve(hostname: string): Promise&lt;string&gt; {
+  const builder = flatbuffers.createBuilder();
+  const host = builder.createString(hostname);
+  const inner = msg.Resolve.createResolve(builder, host);
+
+  const baseRes = await sendAsync(builder, msg.Any.Resolve, inner)!;
+  assert(msg.Any.ResolveRes === baseRes.innerType());
+  const res = new msg.ResolveRes();
+  assert(baseRes.inner(res) !== null);
+
+  return res.ip()!;
+}
+</code></pre>
+
+<p>On the Rust side, things are too different either. Because there&rsquo;s no asyncronous support for DNS in Tokio, we&rsquo;ve used <code>blocking()</code> from Tokio. This is a function that will take a blocking closure returning a Future and execute that closure in a Thread pool returning a <code>Future</code>. It&rsquo;s very useful for wrapping non-async code.</p>
+
+<pre><code class="language-rust">use std::net::ToSocketAddrs;
+
+fn op_resolve(
+  _state: &amp;ThreadSafeState,
+  base: &amp;msg::Base&lt;'_&gt;,
+  _data: Option&lt;PinnedBuf&gt;,
+) -&gt; Box&lt;OpWithError&gt; {
+  let inner = base.inner_as_resolve().unwrap();
+  let cmd_id = base.cmd_id();
+  let hostname = String::from(inner.hostname().unwrap());
+
+  blocking(base.sync(), move || -&gt; OpResult {
+
+    let mut addrs_iter = hostname.to_socket_addrs().unwrap();
+    let ip_addr = addrs_iter.find(|addr| addr.is_ipv4()).unwrap();
+    let ip = format!(&quot;{}&quot;, ip_addr);
+
+    let builder = &amp;mut FlatBufferBuilder::new();
+    let ip_fbs_string = builder.create_string(&amp;ip);
+    let inner = msg::ResolveRes::create(
+      builder,
+      &amp;msg::ResolveResArgs { ip: Some(ip_fbs_string) },
+    );
+
+    Ok(serialize_response(
+      cmd_id,
+      builder,
+      msg::BaseArgs {
+        inner: Some(inner.as_union_value()),
+        inner_type: msg::Any::ResolveRes,
+        ..Default::default()
+      },
+    ))
+  })
+}
+</code></pre>
 </article>
 
       
