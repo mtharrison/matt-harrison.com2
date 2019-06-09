@@ -17,8 +17,9 @@
       <pubDate>Wed, 29 May 2019 19:00:00 +0100</pubDate>
       
       <guid>https://matt-harrison.com/posts/hacking-on-deno/</guid>
-      <description>I&amp;rsquo;ve recently been playing around with Deno - the &amp;ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&amp;rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&amp;rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
-Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node.</description>
+      <description>This is a draft
+I&amp;rsquo;ve recently been playing around with Deno - the &amp;ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&amp;rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&amp;rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.</description>
     </item>
     
     <item>
