@@ -1,6 +1,8 @@
 ---
 title: "Ray Tracing: WebAssembly vs JavaScript"
 date: 2018-08-12T00:00:00+01:00
+aliases:
+    - "/raytracing-webassembly-vs-javascript"
 ---
 I've spent the last couple of weeks learning about the art and science of [Ray Tracing](https://en.wikipedia.org/wiki/Ray_tracing_(graphics)). Ray tracing, for those who aren't familiar is one technique for generating 3d computer graphics. Ray tracing isn't the fastest way to generate 3d images but it's appeal lies in both the realistic effects that can be achieved and in the elegance of simplicity of the technique. This technique is used in movies and for photo-realistic architectural renderings.
 
