@@ -2,6 +2,9 @@
 title: "An introduction to hacking on Deno"
 date: 2019-05-29T19:00:00+01:00
 ---
+
+*This is a draft*
+
 I've recently been playing around with [Deno](https://github.com/denoland/deno) - the "secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio". The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I've been writing JS professionally now for around 5 years and Rust very _unprofessionally_ for just over a year.
 
 Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled [10 things I regret about node.js](https://www.youtube.com/watch?v=M3BM9TB-8yA) at JSConf EU 2018. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript's web heritage and works with rather against the grain of V8's sandbox. I definitely recommend you listen to the full talk if you haven't already.
@@ -356,4 +359,4 @@ fn op_resolve(
 }
 ```
 
-
+...to be continued...
