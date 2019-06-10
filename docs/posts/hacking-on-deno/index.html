@@ -109,17 +109,15 @@ https://github.com/alex-shpak/hugo-book
 </header>
 <article class="markdown">
 
-<p><em>This is a draft</em></p>
-
 <p>I&rsquo;ve recently been playing around with <a href="https://github.com/denoland/deno">Deno</a> - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very <em>unprofessionally</em> for just over a year.</p>
 
 <p>Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled <a href="https://www.youtube.com/watch?v=M3BM9TB-8yA">10 things I regret about node.js</a> at JSConf EU 2018. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript&rsquo;s web heritage and works with rather against the grain of V8&rsquo;s sandbox. I definitely recommend you listen to the full talk if you haven&rsquo;t already.</p>
 
-<p>I&rsquo;m planning to contribute to the Deno project because I think it will be a good way to learn more about Rust on an actual project with real-world complexity. To dip my toes in before I try to pick up a real issue, I decided that I&rsquo;d try to add a couple of dummy &ldquo;features&rdquo; to Deno. It was quite a fun and enlightening exploration so I wanted to share it with the hope that it will also be useful for any other would-be contributors to Deno in the future.</p>
+<p>I&rsquo;m hoping to contribute to the Deno project because I think it will be a good way to learn more about Rust on an actual project with real-world complexity, it also seems like a lot of fun. To dip my toes in before I try to pick up a real issue, I decided that I&rsquo;d try to add a couple of dummy &ldquo;features&rdquo; to Deno. It was quite a fun and enlightening exploration so I wanted to share it with the hope that it will also be useful for any other would-be contributors to Deno in the future.</p>
 
 <h2 id="architecture-of-deno">Architecture of Deno</h2>
 
-<p>Many parallels can be drawn between Deno&rsquo;s architecture and how a Unix operating system is organised. In Deno, you have an unprivileged user-space, where code is written in Typescript and executed in a JavaScript sandbox by V8. To interact with the system, the user-space code must dispatch messages (like system calls) to the privileged side, which is written in Rust and linked in with V8. This comparison isn&rsquo;t just my own observation but actually stated in the <a href="https://deno.land/manual.html">Deno manual</a>:</p>
+<p>Many parallels can be drawn between Deno&rsquo;s architecture and how a Unix operating system is organised. In Deno, there is an unprivileged user space, where code is written in TypeScript then compiled and executed in a JavaScript sandbox by V8. To interact with the system, the user space code must dispatch messages (like OS system calls) to the privileged side, which is written in Rust and linked in with V8. This comparison isn&rsquo;t just my own observation but actually stated in the <a href="https://deno.land/manual.html">Deno manual</a>:</p>
 
 <table>
 <thead>
@@ -160,7 +158,9 @@ https://github.com/alex-shpak/hugo-book
 </tbody>
 </table>
 
-<p>This can be contrasted to the situation we have in Node.js where the interface between JS and native code is a lot less, contained, shall we say. Native modules can punch holes into JavaScript from anywhere, inserting functions which have access to your system into the global scope of your scripts. Suddenly the code running in your sandbox isn&rsquo;t really sandboxed at all. The benefits of Deno&rsquo;s approach is that it&rsquo;s easier to keep track of what your programs are doing by using a single system call conduit, including the resources they&rsquo;re using like files and sockets. It also makes it easy to apply capability-based permissions upon executing scripts. Deno defaults scripts to having no access to things like network, host filesystem etc. You must give these permissions by passing flags e.g. <code>--allow-net</code>.</p>
+<p>This can be contrasted to the situation we have in Node.js where the interface between JS and native code is a lot less, contained, shall we say. Native modules can punch holes into JavaScript from anywhere, inserting functions which have access to your system into the global scope of your scripts. Suddenly the code running in your sandbox isn&rsquo;t really all that sandboxed at all. The benefits of Deno&rsquo;s approach is that it&rsquo;s easier to keep track of what your programs are doing by using a single system call interface, including the resources they&rsquo;re using like files and sockets. It also makes it easy to apply capability-based permissions on executing scripts. Deno defaults scripts to having no access to things like network, host filesystem etc. You must give these permissions explicitly by passing flags e.g. <code>--allow-net</code> and <code>--allow-write</code>.</p>
+
+<p>Security approach isn&rsquo;t the only difference between Node and Deno, <a href="https://deno.land/manual.html">the manual</a> is a great place to learn more.</p>
 
 <p>Deno provides the same asynchronous non-blocking I/O as default that Node.js does. Where Node.js relies on <a href="https://github.com/libuv/libuv">libuv</a>, Deno makes uses of the evolving async I/O stack in Rust composed of <a href="https://github.com/tokio-rs/tokio">Tokio</a> and <a href="https://github.com/tokio-rs/mio">Mio</a>.</p>
 
@@ -170,7 +170,7 @@ https://github.com/alex-shpak/hugo-book
 
 <h2 id="adding-a-typescript-feature-to-the-userspace-api">Adding a TypeScript feature to the userspace API</h2>
 
-<p>Let&rsquo;s start off easy, first let&rsquo;s add to the <code>Deno</code> TypeScript namespace that&rsquo;s available to all programs via <code>global.Deno</code>.</p>
+<p>Let&rsquo;s start off easy, first let&rsquo;s add to the global <code>Deno</code> namespace that&rsquo;s available to all programs via <code>global.Deno</code>.</p>
 
 <p>Let&rsquo;s add a new file under <code>deno/js/number.ts</code> and add the following contents:</p>
 
@@ -179,7 +179,7 @@ https://github.com/alex-shpak/hugo-book
 }
 </code></pre>
 
-<p>We&rsquo;ll need to expose this on Deno namespace by adding the following to <code>deno/js/deno.ts</code>:</p>
+<p>We&rsquo;ll need to expose this on <code>Deno</code> namespace by adding the following to <code>deno/js/deno.ts</code>:</p>
 
 <pre><code class="language-js">export { myNumber } from  &quot;./number&quot;;
 </code></pre>
@@ -215,13 +215,11 @@ main();
 
 <h2 id="some-deno-rust-ts-basics">Some Deno Rust &lt;-&gt; TS basics</h2>
 
-<p>Pure JavaScript in V8 has limited functionality, aside from the built-in language features of course. Anything else that interacts with the operating system, such as networking, timers and process control needs to be provided by the host environment. That host environment in the case of Node.js is written in C++ and for Deno it&rsquo;s written in Rust.</p>
+<p>Pure JavaScript executing in V8 has limited functionality, aside from the built-in language features of course. Anything else that interacts with the operating system, such as networking, timers and process control needs to be provided by the host environment. That host environment in the case of Node.js is written in C++ and for Deno it&rsquo;s written in Rust.</p>
 
 <p>First let&rsquo;s touch upon how we communicate between TS and Rust. Remember when I mentioned that <a href="https://github.com/nodejs/node/blob/master/src/node_process_object.cc#L165">Node.js pokes holes into V8</a>, injecting functions for each of the features it provides. Deno takes a different approach, instead it only pokes a single hole into V8 and provides a single function <code>dispatch()</code> that can be called from unpriviledged code. <code>dispatch()</code> accepts a message which may be one of many types, along with additional arguments and a buffer. <code>dispatch()</code> returns a message (or a <code>Promise</code> over a message). By using this very controlled method of message passing, Deno exerts much more restraint over the sandbox.</p>
 
-<p>But what is this message? And isn&rsquo;t it expensive to keep passing them around? Rust uses <a href="https://google.github.io/flatbuffers/">Flatbuffers</a> to encode typed messages which are passing between Rust and JS as byte arrays. The message fields can be read in place very efficiently with no (de)serialization required.</p>
-
-<p>[insert diagram here]</p>
+<p>But what is this message? And isn&rsquo;t it expensive to keep passing them around? Rust uses <a href="https://google.github.io/flatbuffers/">Flatbuffers</a> to encode typed messages which are passed between Rust and JS as byte buffers. The message fields can then be read in place very efficiently with no (de)serialization required.</p>
 
 <h2 id="adding-a-synchronous-rust-feature-to-the-privileged-side">Adding a synchronous Rust feature to the privileged side</h2>
 
@@ -263,11 +261,11 @@ export function myPid(): number {
 }
 </code></pre>
 
-<p>A lot of the TypeScript core code has similar boilerplate to it: we first create a flatbuffers builder and then create an instance of the message type we want to dispatch, in this case <code>MyPid</code>. Then we call <code>sendSync</code> which is a wrapper around <code>Deno.core.dispatch()</code> which actually does the inter-language communication. We get a generic response message back, which we convert to a specialized type by calling <code>message.inner(T)</code>.</p>
+<p>A lot of the TypeScript core code has similar boilerplate to it: we first create a flatbuffers builder and then create an instance of the message type we want to dispatch, in this case <code>MyPid</code>. Then we call <code>sendSync()</code> which is a wrapper around <code>Deno.core.dispatch()</code> which actually does the inter-language communication. We get a generic response message back, which we convert to a specialized type by calling <code>message.inner(T)</code>.</p>
 
 <p>We can then get at the fields of the response by calling methods corresponding to their names.</p>
 
-<p>All that&rsquo;s left now is to write the Rust side of things. We&rsquo;ll do this in <code>cli/ops.rs</code>. Deno refers to it&rsquo;s commands between Rust and TS, or its syscalls as ops. To handle the <code>MyPid</code> message we need to write a new op.</p>
+<p>All that&rsquo;s left now is to write the Rust side of things. We&rsquo;ll do this in <code>cli/ops.rs</code>. Deno refers to its bindings between Rust and TS, or its syscalls as Ops. To handle the <code>MyPid</code> message we need to write a new Op.</p>
 
 <p>First we&rsquo;ll add a clause to the <code>match</code> statement that matches on the type of the incoming message:</p>
 
@@ -408,7 +406,7 @@ export async function resolve(hostname: string): Promise&lt;string&gt; {
 }
 </code></pre>
 
-<p>On the Rust side, things are too different either. Because there&rsquo;s no asyncronous support for DNS in Tokio, we&rsquo;ve used <code>blocking()</code> from Tokio. This is a function that will take a blocking closure returning a Future and execute that closure in a Thread pool returning a <code>Future</code>. It&rsquo;s very useful for wrapping non-async code.</p>
+<p>On the Rust side, things aren&rsquo;t too different either. Because there&rsquo;s no asyncronous support for DNS in Tokio, we&rsquo;ve used <code>tokio_threadpool::blocking()</code>. This is a function that will take a blocking closure returning a <code>Future</code> and execute that closure in a thread pool returning a <code>Future</code> which resolves when the blocking closure returns. It&rsquo;s very useful for wrapping sync code.</p>
 
 <pre><code class="language-rust">use std::net::ToSocketAddrs;
 
@@ -446,8 +444,6 @@ fn op_resolve(
   })
 }
 </code></pre>
-
-<p>&hellip;to be continued&hellip;</p>
 </article>
 
       
