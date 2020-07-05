@@ -3,7 +3,7 @@ title: "Getting started with GitHub Actions"
 date: 2020-07-05T12:00:00+01:00
 ---
 
-![actions](https://cldup.com/CPPgilVzgO.png)
+![actions](https://cldup.com/oeFfVNoznL.png)
 
 I want to share with you my first experience working with GitHub Actions. They're really neat and definitely worth your time if you're a fan of automation.
 
