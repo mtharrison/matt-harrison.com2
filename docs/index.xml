@@ -12,6 +12,17 @@
     
     
     <item>
+      <title>Getting started with GitHub Actions</title>
+      <link>https://matt-harrison.com/posts/github-actions/</link>
+      <pubDate>Sun, 05 Jul 2020 12:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/github-actions/</guid>
+      <description>I want to share with you my first experience working with GitHub Actions. They&amp;rsquo;re really neat and definitely worth your time if you&amp;rsquo;re a fan of automation.
+Background This weekend I was working on a small personal project: a GitHub PR Comment resource for Concourse CI. That isn&amp;rsquo;t what this post is about really but first a little context.
+The project I was building is a Go project. When built, it consists of 2 built binaries check and in.</description>
+    </item>
+    
+    <item>
       <title>An introduction to hacking on Deno</title>
       <link>https://matt-harrison.com/posts/hacking-on-deno/</link>
       <pubDate>Wed, 29 May 2019 19:00:00 +0100</pubDate>
