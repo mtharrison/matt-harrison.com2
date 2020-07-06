@@ -11,7 +11,7 @@
 <title>
   
     
-    Getting started with GitHub Actions
+    First experience with GitHub Actions
   
  | Matt Harrison</title>
 
@@ -47,10 +47,10 @@ https://github.com/alex-shpak/hugo-book
   <p>Software developer and author based in the UK.</p>
 
   <div class="linksBlock">
-    <p><a href="http://twitter.com/mt_harrison">Twitter</a></p>
+    <p><a href="http://twitter.com/mt_harrison"><s>Twitter</s></a></p>
     <p><a href="https://github.com/mtharrison">Github</a></p>
     <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
-    <p class="cv"><a href="https://zety.com/mycv/mharrison">Resume</a></p>
+    
   </div>
 </div>
 
@@ -95,7 +95,7 @@ https://github.com/alex-shpak/hugo-book
   <strong>
   
     
-    Getting started with GitHub Actions
+    First experience with GitHub Actions
   
 </strong>
 </header>
@@ -103,7 +103,7 @@ https://github.com/alex-shpak/hugo-book
       
 
 <header class="markdown">
-  <h1>Getting started with GitHub Actions</h1>
+  <h1>First experience with GitHub Actions</h1>
   <h5>
     <strong>July 5, 2020</strong>
   </h5>
@@ -121,8 +121,6 @@ https://github.com/alex-shpak/hugo-book
 <p>The project I was building is a Go project. When built, it consists of 2 built binaries <code>check</code> and <code>in</code>. These are part of the standard interface for any Concourse resource. A resource should just be a Docker image where those 2 binaries exist in a specific directory. So unsurprisingly my project contains a <code>Dockerfile</code> to build said image.</p>
 
 <p>I&rsquo;ll be honest and admit that I only really &ldquo;got&rdquo; and starting appreciating CI and build automation when I started working at my current gig. Probably because before that I was either writing personal projects or pretty much working within a non-technical team where I was the only one regularly writing code and so it made sense to run tests, produce builds and run deployments from my own machine. I was lucky enough not to run into the sort of issues that CI and centralised build systems solve.</p>
-
-<p>I compare that to the aha moment I got when I first understood unit tests. Releasing code without unit tests is unthinkable to me now but (embarrassingly) I remember a point where they seemed like a frivolous and pointless luxury to me.</p>
 
 <p>After working on a largish team for several years now, I can&rsquo;t imagine not having all the automated goodness that comes along with a well configured CI system. I&rsquo;m talking about:</p>
 
@@ -288,7 +286,9 @@ jobs:
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>I was impressed how straightforward and painless it was to migrate from my usual Travis workflow to using GitHub actions. The functionality, for my modest needs seems pretty much on par. The community potential via marketplace seems really promising too. The opportunity to monetise them seems like another positive step in making open source contributions financially rewarding.</p>
+<p>I was impressed how straightforward and painless it was to migrate from my usual Travis workflow to using GitHub actions. The functionality, for my modest needs seems pretty much on par. I was able to set up everything I needed in under a couple of hours and the documentation was fairly extensive even if it requires jumping around quite a bit between different guides.</p>
+
+<p>The community potential via marketplace seems really promising too. The opportunity to monetise them seems like another positive step in making open source contributions financially rewarding.</p>
 
 <p>I can see that GitHub actions may become the standard for small to medium open source projects.</p>
 

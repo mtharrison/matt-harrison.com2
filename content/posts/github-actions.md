@@ -1,5 +1,5 @@
 ---
-title: "Getting started with GitHub Actions"
+title: "First experience with GitHub Actions"
 date: 2020-07-05T12:00:00+01:00
 ---
 
@@ -14,8 +14,6 @@ This weekend I was working on a small personal project: a [GitHub PR Comment res
 The project I was building is a Go project. When built, it consists of 2 built binaries `check` and `in`. These are part of the standard interface for any Concourse resource. A resource should just be a Docker image where those 2 binaries exist in a specific directory. So unsurprisingly my project contains a `Dockerfile` to build said image.
 
 I'll be honest and admit that I only really "got" and starting appreciating CI and build automation when I started working at my current gig. Probably because before that I was either writing personal projects or pretty much working within a non-technical team where I was the only one regularly writing code and so it made sense to run tests, produce builds and run deployments from my own machine. I was lucky enough not to run into the sort of issues that CI and centralised build systems solve.
-
-I compare that to the aha moment I got when I first understood unit tests. Releasing code without unit tests is unthinkable to me now but (embarrassingly) I remember a point where they seemed like a frivolous and pointless luxury to me.
 
 After working on a largish team for several years now, I can't imagine not having all the automated goodness that comes along with a well configured CI system. I'm talking about:
 
@@ -181,7 +179,9 @@ Also I can add a nice release badge to my README courtesy of the amazing badges 
 
 ## Conclusion
 
-I was impressed how straightforward and painless it was to migrate from my usual Travis workflow to using GitHub actions. The functionality, for my modest needs seems pretty much on par. The community potential via marketplace seems really promising too. The opportunity to monetise them seems like another positive step in making open source contributions financially rewarding.
+I was impressed how straightforward and painless it was to migrate from my usual Travis workflow to using GitHub actions. The functionality, for my modest needs seems pretty much on par. I was able to set up everything I needed in under a couple of hours and the documentation was fairly extensive even if it requires jumping around quite a bit between different guides.
+
+The community potential via marketplace seems really promising too. The opportunity to monetise them seems like another positive step in making open source contributions financially rewarding.
 
 I can see that GitHub actions may become the standard for small to medium open source projects.
 
