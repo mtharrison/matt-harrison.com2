@@ -30,6 +30,9 @@ jobs:
           path: docs
 
       - name: Hugo Build
+        run: cd main && hugo 
+    
+      - name: Where am i
         run: ls
 
       # - name: Commit to master
