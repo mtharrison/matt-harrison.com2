@@ -109,13 +109,9 @@ https://github.com/alex-shpak/hugo-book
   </h5>
 </header>
 <article class="markdown"><p>I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).</p>
-
-<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup1.JPG" alt="Setup" /></p>
-
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup1.JPG" alt="Setup"></p>
 <p>I found the fantastic <a href="https://github.com/shirriff/Arduino-IRremote">Arduino-IRremote</a> library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.</p>
-
 <p>It turned out my remote conformed to the NEC protocol. The NEC protocol sends:</p>
-
 <ul>
 <li>a 9ms leading pulse burst (16 times the pulse burst length used for a logical data bit)</li>
 <li>a 4.5ms space</li>
@@ -125,127 +121,22 @@ https://github.com/alex-shpak/hugo-book
 <li>the 8-bit logical inverse of the command
 a final 562.5µs pulse burst to signify the end of message transmission.</li>
 </ul>
-
 <p>So the total data bits are 32 and the data package may look like this:</p>
-
-<pre><code class='language-c'>∨ device address  ∨ command
-10110100 01001011 11100111 00011000
-         ∧  ~address       ∧ ~command</code></pre>
-
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
 <p>I wired the sensor with my arduino as following:</p>
-
-<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/breadboard.png" alt="Breadboard" /></p>
-
-<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup2.JPG" alt="Wiring" /></p>
-
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/breadboard.png" alt="Breadboard"></p>
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup2.JPG" alt="Wiring"></p>
 <p>I then uploaded the following sketch to the Arduino (this is almost exactly the same as the example sketch provided with the library except I write the data as binary rather than hex.</p>
-
-<pre><code class='language-c'>#include <IRremote.h>
-int RECV_PIN = 11;
-IRrecv irrecv(RECV_PIN);
-decode_results results;
-
-void setup()
-{
-  Serial.begin(9600);
-  irrecv.enableIRIn();
-}
-
-void loop() {
-  if (irrecv.decode(&results)) {
-    Serial.println(results.value, BIN);
-    irrecv.resume();
-  }
-}</code></pre>
-
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
 <p>I can now start collecting commands from the sensor but I need something to do with them. I used the great <a href="https://github.com/voodootikigod/node-serialport">node-serialport</a> module for Node to collect data from the serial port. I also used the <a href="http://expressjs.com/">Express framework</a> and <a href="http://socket.io/">Socket.IO</a> to create a persistent connection to a webpage. The server code for Node is below:</p>
-
-<pre><code class='language-javascript'>var serialport = require("serialport");
-var SerialPort = serialport.SerialPort
-var serialPort = new SerialPort("/dev/tty.usbmodem1411", {
-    parser: serialport.parsers.readline("\n"),
-    baudrate: 9600
-});
-
-serialPort.open(function () {
-    var app = require('express')()
-    , server = require('http').createServer(app)
-    , io = require('socket.io').listen(server);
-
-    server.listen(8080);
-
-    app.get('/', function (req, res) {
-        res.sendfile(__dirname + '/index.html');
-    });
-
-    io.sockets.on('connection', function (socket) {
-        serialPort.on('data', function(data) {
-            io.sockets.emit('data', { data: data});
-        });
-    });
-});</code></pre>
-
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
 <p>When the websocket client recieves a <code>data</code> event, it passes the data to a javascript function which then draws a logic chart on the screen using canvas, showing the bits recieved from the remote. This has the protocol headers stripped and is just the command.</p>
-
-<pre><code class='language-javascript'>//Takes a string like 101010001010
-function drawChart(string){
-
-        ctx.strokeStyle = '#ff0000';
-        ctx.clearRect(0, 0, 960, 360);
-        ctx.beginPath();
-        ctx.lineWidth = 3;
-        ctx.moveTo(0,330);
-
-        var bits = string.split("");
-        var travel = Math.floor(960/string.length);
-
-        var lastBit = "30";
-        var x = 0;
-
-        for(var i in bits){
-            if(bits[i] === "1"){
-                if(lastBit === "1"){
-                    ctx.lineTo(x+travel, 30);
-                    x = x + travel;
-                    ctx.stroke();
-                } else {
-                    ctx.lineTo(x, 30);
-                    ctx.lineTo(x+travel, 30);
-                    x = x + travel;
-                    ctx.stroke();
-                }
-            } else {
-                if(lastBit === "1"){
-                    ctx.lineTo(x, 330);
-                    ctx.lineTo(x+travel, 330);
-                    x = x + travel;
-                    ctx.stroke();
-                } else {
-                    ctx.lineTo(x+travel, 330);
-                    x = x + travel;
-                    ctx.stroke();
-                }
-            }
-
-            ctx.font = "bold 16px Menlo";
-            ctx.fillText(bits[i], x-23, 355);
-            ctx.fillText(bits[i], x-23, 15);
-
-            lastBit = bits[i];
-        }
-        ctx.strokeStyle = '#000000';
-
-        ctx.lineWidth = 0.5;
-        for(var i in bits){
-            ctx.moveTo(travel * i,360);
-            ctx.lineTo(travel * i, 0);
-        }
-
-        ctx.stroke();
-    };</code></pre>
-
-<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/plot.png" alt="Logic plot" /></p>
-
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/plot.png" alt="Logic plot"></p>
 <p>When I have a IR LED I can start replaying these commands and switching my TV on and off through the web, I&rsquo;ll post updates of this when I get round to it.</p>
 </article>
 

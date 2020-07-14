@@ -108,14 +108,9 @@ https://github.com/alex-shpak/hugo-book
     <strong>March 3, 2015</strong>
   </h5>
 </header>
-<article class="markdown">
-
-<p>Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.</p>
-
+<article class="markdown"><p>Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.</p>
 <h3 id="the-listener">The listener</h3>
-
 <p>Every hapi server comes with a <code>listener</code> property:</p>
-
 <pre><code>var Hapi = require('hapi');
 
 var server = new Hapi.Server();
@@ -123,22 +118,16 @@ server.connection({ port: 4000 });
 
 var listener = server.listener; // &lt;--- The listener
 </code></pre>
-
 <p>That <code>listener</code> object, in this case, is a node <code>http</code> (or <code>https</code>) server. Exactly the same as you would get from the following:</p>
-
 <pre><code>var Http = require('http');
 
 var listener = Http.createServer(function (req, res){
     ...
 });
 </code></pre>
-
 <p>Whenever you create a new connection in hapi, it goes and creates a new <code>http</code> server for you internally. This gets set to <code>this.listener</code>.</p>
-
-<h3 id="setting-up-socket-io">Setting up Socket.io</h3>
-
+<h3 id="setting-up-socketio">Setting up Socket.io</h3>
 <p>The offical Socket.io docs show how to set up socket.io when using a vanilla node <code>http</code> server.</p>
-
 <pre><code>var handler = function (req, res) {
   ...
 };
@@ -148,11 +137,8 @@ var io = require('socket.io')(app); // &lt;--- what's this 'app' thing?
 
 app.listen(80);
 </code></pre>
-
 <p>The <code>app</code> variable in the above example is an instance of a node <code>http</code> server, just like our hapi server&rsquo;s <code>listener</code>.</p>
-
 <p>We can take this knowledge that socket.io can be initialized with an <code>http</code> server over to hapi:</p>
-
 <pre><code>var Hapi = require('hapi');
 
 var server = new Hapi.Server();
@@ -171,27 +157,17 @@ io.on('connection', function (socket) {
 
 server.start();
 </code></pre>
-
-<p>Pretty straightforward right? Socket.io will go and attach itself to the listener (server). You can make sure it&rsquo;s working by going to <a href="http://localhost:4000/socket.io/socket.io.js">http://localhost:4000/socket.io/socket.io.js</a>, you should see the socket.io client JS file being served.</p>
-
-<h3 id="why-isn-t-there-some-kind-of-conflict-between-hapi-and-socket-io">Why isn&rsquo;t there some kind of conflict between hapi and socket.io?</h3>
-
+<p>Pretty straightforward right? Socket.io will go and attach itself to the listener (server). You can make sure it&rsquo;s working by going to http://localhost:4000/socket.io/socket.io.js, you should see the socket.io client JS file being served.</p>
+<h3 id="why-isnt-there-some-kind-of-conflict-between-hapi-and-socketio">Why isn&rsquo;t there some kind of conflict between hapi and socket.io?</h3>
 <p>Every Node <code>http</code> server can have several listener (yeah&hellip;a different meaning of listener) functions for the <code>request</code> event. When you setup socket.io, it will remove all existing listeners (including the one added by hapi):</p>
-
 <pre><code>var listeners = server.listeners('request').slice(0);
 server.removeAllListeners('request');
 </code></pre>
-
 <p>By removing all existing listeners, socket.io is ensuring it gets to the request first.</p>
-
 <p>But it will keep hold of any others and if it decides the request isn&rsquo;t intended for socket.io (i.e. the url doesn&rsquo;t start /socket.io), it will call those other listener function instead, giving control back to hapi.</p>
-
 <h3 id="how-about-when-using-multiple-connections">How about when using multiple connections?</h3>
-
 <p>A &ldquo;server&rdquo; in hapi is semantically different to a &ldquo;server&rdquo; in node. A server in hapi may be listening on several different ports all at once by using multiple connections.</p>
-
 <p>If your hapi server has multiple connections, it really has multiple node <code>http</code> servers running for you in the background. The <code>listener</code> property of the hapi server is always going to point to the <code>http</code> server on the first connection. If you want to attach socket.io to a different connection, you can use labels and <code>server.select()</code>:</p>
-
 <pre><code>var Hapi = require('hapi');
 
 var server = new Hapi.Server();
@@ -211,20 +187,15 @@ io.on('connection', function (socket) {
 
 server.start();
 </code></pre>
-
 <h3 id="what-about-plugins">What about plugins?</h3>
-
 <p>My favourite feature of hapi is plugins without a doubt. I love the way you can split up your concerns into separate modules. If I&rsquo;m using socket.io with hapi, I always embrace the plugin approach to split my realtime concerns into their own plugin.</p>
-
 <pre><code>.
-├── chat    &lt;--- My hapi plugin
+├── chat	&lt;--- My hapi plugin
 │   ├── handlers.js
 │   └── index.js
 └── index.js
 </code></pre>
-
-<h5 id="index-js">index.js</h5>
-
+<h5 id="indexjs">index.js</h5>
 <pre><code>var Hapi = require('hapi');
 
 var server = new Hapi.Server();
@@ -241,9 +212,7 @@ server.register(require('./chat'), function (err) {
     server.start();
 });
 </code></pre>
-
-<h5 id="chat-index-js">chat/index.js</h5>
-
+<h5 id="chatindexjs">chat/index.js</h5>
 <pre><code>var Handlers = require('./handlers');
 
 exports.register = function (server, options, next) {
@@ -266,9 +235,7 @@ exports.register.attributes = {
     name: 'hapi-chat'
 };
 </code></pre>
-
-<h5 id="chat-handlers-js-socket-io-is-kind-enough-to-bind-your-handlers-to-the-socket-so-this-is-equal-to-the-socket-object">chat/handlers.js (socket.io is kind enough to bind your handlers to the socket so <code>this</code> is equal to the socket object)</h5>
-
+<h5 id="chathandlersjs-socketio-is-kind-enough-to-bind-your-handlers-to-the-socket-so-this-is-equal-to-the-socket-object">chat/handlers.js (socket.io is kind enough to bind your handlers to the socket so <code>this</code> is equal to the socket object)</h5>
 <pre><code>exports.hello = function () {
 
     this.emit('Hi back at you');
@@ -284,20 +251,13 @@ exports.goodbye = function () {
     this.emit('Take it easy, pal');
 };
 </code></pre>
-
 <p>I find this is a really clean approach to divide up apps that use both hapi and socket.io.</p>
-
-<h3 id="that-s-it">That&rsquo;s it!</h3>
-
+<h3 id="thats-it">That&rsquo;s it!</h3>
 <p>I hope this short tutorial has been of some help you to. If you&rsquo;ve any suggestestions or corrections, please leave a comment or get me at @mt_harrison.</p>
-
 <h3 id="the-book">The book</h3>
-
-<div style="height: 200px">
-
-<img style="float:left; overflow:hidden; padding: 0px 20px 20px 0px" src='http://matt-harrison.com/content/images/2015/Feb/hjsia_cover.jpg'/>I'm currently in the process of writing a book about hapi. <a href="http://manning.com/harrison/">Hapi.js in Action</a> is available now as a MEAP from Manning Publications. Use my author code <strong>mlharrison</strong> to get 50% off, for a limited time only.
-
-</div>
+<!-- raw HTML omitted -->
+<p><!-- raw HTML omitted -->I&rsquo;m currently in the process of writing a book about hapi. <!-- raw HTML omitted -->Hapi.js in Action<!-- raw HTML omitted --> is available now as a MEAP from Manning Publications. Use my author code <!-- raw HTML omitted -->mlharrison<!-- raw HTML omitted --> to get 50% off, for a limited time only.</p>
+<!-- raw HTML omitted -->
 </article>
 
       
