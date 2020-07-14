@@ -23,11 +23,8 @@ jobs:
         with:
           submodules: true
 
-      - name: Checkout theme submodule
-        run: ls -al && hugo
-
       - name: Hugo Build
-        run: ls -al && hugo
+        run: hugo
 
       - name: Commit to master
         run: |
@@ -35,6 +32,11 @@ jobs:
           git config --local user.name "GitHub Action"
 
           git add docs
-          git commit -m "[CI] build hugo static site"
-          git push
+
+          if git diff-index --quiet HEAD --; then
+            echo "No changes..."
+          else
+            git commit -m "[CI] build hugo static site"
+            git push
+          fi
 
