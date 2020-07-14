@@ -25,21 +25,21 @@ jobs:
           path: main
           submodules: true
 
-      - name: Checkout docs branch
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v2
         with:
-          ref: docs
-          path: docs
+          ref: gh-pages
+          path: gh-pages
 
       - name: Hugo Build
         run: cd main && hugo 
     
       - name: Copy files
-        run: mv main/public/* docs/
+        run: mv main/public/* gh-pages/
   
       - name: Commit changes
         run: |
-          cd docs
+          cd gh-pages
           
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Action"
