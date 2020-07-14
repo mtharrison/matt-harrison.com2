@@ -2,6 +2,10 @@ h1 {
     font-size: 1.7rem;
 }
 
+.post a {
+    text-decoration: underline;
+}
+
 .sidebar-about h1 {
     font-size: 2.0rem;
 }
