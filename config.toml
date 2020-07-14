@@ -3,3 +3,4 @@ languageCode = "en-us"
 title = "Matt Harrison"
 theme = "hugo-book"
 publishDir = "docs"
+disableKinds = ['taxonomy', 'taxonomyTerm']

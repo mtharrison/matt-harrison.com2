@@ -5,6 +5,7 @@
 
 .book-posts {
     max-width: 47rem;
+    padding-top: 3rem;
 }
 
 img {
@@ -30,3 +31,4 @@ li.page-item {
 ul.pagination .page-item a {
     padding: 0.5rem;
 }
+
