@@ -1,114 +1,148 @@
 <!DOCTYPE html>
-
-
-
-
-<html lang="en">
-
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
 <head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>
-  
-    
-    Capturing infrared packets with Arduino and plotting them with HTML5 canvas
-  
- | Matt Harrison</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
 
+  <title>Capturing infrared packets with Arduino and plotting them with HTML5 canvas &middot; Matt Harrison</title>
 
-
-<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
-
-
-<link rel="icon" href="/favicon.png" type="image/x-icon">
-
-
-<!--
-Made with Book Theme
-https://github.com/alex-shpak/hugo-book
--->
+  <meta name="description" content="" />
 
   
 
-  <link rel="stylesheet" href="/css/routeros.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="/js/highlight.pack.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
-</head>
+<meta itemprop="name" content="Capturing infrared packets with Arduino and plotting them with HTML5 canvas">
+<meta itemprop="description" content="I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).
+I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.">
+<meta itemprop="datePublished" content="2013-10-27T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2013-10-27T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="342">
 
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Capturing infrared packets with Arduino and plotting them with HTML5 canvas"/>
+<meta name="twitter:description" content="I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).
+I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits."/>
+
+
+<meta property="og:title" content="Capturing infrared packets with Arduino and plotting them with HTML5 canvas" />
+<meta property="og:description" content="I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).
+I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/arduino/" />
+<meta property="article:published_time" content="2013-10-27T00:00:00+01:00" />
+<meta property="article:modified_time" content="2013-10-27T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
 <body>
-  <input type="checkbox" style="display: none" id="menu-control" />
-  <main class="flex container">
-    <aside class="book-menu fixed">
-      <nav role="navigation">
-<div class="brand">
-    <a href="https://matt-harrison.com/"><img class="profile-image" src="https://matt-harrison.com/content/images/2018/07/153180020555179787--1--2.gif" alt=""></a>
-  <h2 class="book-brand"><a href="https://matt-harrison.com/">Matt Harrison</a></h2>
-  <p>Software developer and author based in the UK.</p>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
 
-  <div class="linksBlock">
-    <p><a href="http://twitter.com/mt_harrison"><s>Twitter</s></a></p>
-    <p><a href="https://github.com/mtharrison">Github</a></p>
-    <p><a href="http://stackoverflow.com/users/1402929/matt-harrison">Stack Overflow</a></p>
-    
-  </div>
-</div>
+        <h1><a href="/">Matt Harrison</a></h1>
 
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
 
-
-
-    
-
-  
-  
-
-
-
-
-
-
-  <ul>
-  
-  </ul>
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
 
 
-
-
-
-
-
-
-
-
-
-</nav>
-
-
-
-    </aside>
-
-    <div class="book-posts">
-      <header class="align-center justify-between book-header">
-  <label for="menu-control">
-    <img src="/svg/menu.svg" alt="Menu" />
-  </label>
-  <strong>
-  
-    
-    Capturing infrared packets with Arduino and plotting them with HTML5 canvas
-  
-</strong>
-</header>
-
-      
-
-<header class="markdown">
+  <main class="content container">
+  <div class="post">
   <h1>Capturing infrared packets with Arduino and plotting them with HTML5 canvas</h1>
-  <h5>
-    <strong>October 27, 2013</strong>
-  </h5>
-</header>
-<article class="markdown"><p>I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).</p>
+
+  <div class="post-date">
+    <time datetime="2013-10-27T00:00:00&#43;0100">Oct 27, 2013</time> &middot; 2 min read
+  </div>
+
+  <p>I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).</p>
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup1.JPG" alt="Setup"></p>
 <p>I found the fantastic <a href="https://github.com/shirriff/Arduino-IRremote">Arduino-IRremote</a> library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.</p>
 <p>It turned out my remote conformed to the NEC protocol. The NEC protocol sends:</p>
@@ -138,24 +172,29 @@ a final 562.5µs pulse burst to signify the end of message transmission.</li>
 <!-- raw HTML omitted -->
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/plot.png" alt="Logic plot"></p>
 <p>When I have a IR LED I can start replaying these commands and switching my TV on and off through the web, I&rsquo;ll post updates of this when I get round to it.</p>
-</article>
 
-      
-    </div>
+</div>
+
+
   </main>
 
-  
-  
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
 
   
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-49752272-2"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'UA-49752272-2');
-  </script>
 </body>
-
 </html>
