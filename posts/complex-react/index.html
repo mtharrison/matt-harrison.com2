@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Building a complex web component with Facebook&#39;s React Library &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Building a complex web component with Facebook&#39;s React Library">
+<meta itemprop="description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
+React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
+I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator.">
+<meta itemprop="datePublished" content="2014-01-03T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2014-01-03T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="721">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Building a complex web component with Facebook&#39;s React Library"/>
+<meta name="twitter:description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
+React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
+I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator."/>
+
+
+<meta property="og:title" content="Building a complex web component with Facebook&#39;s React Library" />
+<meta property="og:description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
+React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
+I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/complex-react/" />
+<meta property="article:published_time" content="2014-01-03T00:00:00+01:00" />
+<meta property="article:modified_time" content="2014-01-03T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Building a complex web component with Facebook&#39;s React Library</h1>
+
+  <div class="post-date">
+    <time datetime="2014-01-03T00:00:00&#43;0100">Jan 3, 2014</time> &middot; 4 min read
+  </div>
+
+  <p><strong>Edit (12-2016):</strong> This article has been updated for React 0.14 and ES2015</p>
+<p>React looks set to be the hot front end technology of 2014 with <a href="https://twitter.com/floydophone/status/418207644919545856">some</a> even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:</p>
+<!-- raw HTML omitted -->
+<p>I&rsquo;m going to show you how to create a complex, interactive web component with <a href="facebook.github.io/react/">React</a>. To this end, I will be creating a 5 band resistance calculator. This component will consist of an SVG diagram of a electronic resistor component with coloured bands, indicators of resistance and tolerance and dropdowns for changing the colours of the 5 bands.</p>
+<p>Initially I wanted to use SVG gradients for the resistor fills, but they&rsquo;re not supported by React/JSX (<strong>Update:</strong> I&rsquo;ve opened a <a href="https://github.com/facebook/react/pull/819">pull request</a> to fix this).</p>
+<p>Firstly though, let&rsquo;s talk a little about <a href="facebook.github.io/react/">React</a>.</p>
+<h3 id="what-is-react">What is react?</h3>
+<p><a href="facebook.github.io/react/">React</a> from Facebook is:</p>
+<blockquote>
+<p>A Javascript Library for Creating User Interfaces</p>
+</blockquote>
+<p>When React was introduced to the community, there was mixed feelings, with some accusing Facebook of flying in the face of time-tested and accepted standards. This didn&rsquo;t faze the React team and they actually adopted a snarky tweet as their strapline!</p>
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/cowboy-tweet.png" alt="Image of the finished product"></p>
+<p>I won&rsquo;t give you a complete breakdown of the library, I suggest you read all the info on their page and have a look at the project on <a href="https://github.com/facebook/react">Github</a>.</p>
+<p>After assessing the library myself I&rsquo;ve found both pros and cons but I think overall the pros outweigh the cons.</p>
+<p>Pros:</p>
+<ul>
+<li>Nice declarative style, you just specific how your UI should look without worry about manipulating the DOM to keep it that way</li>
+<li>JSX looks like HTML, so it&rsquo;s intuitive for designers and is quicker to read and visualise</li>
+<li>Once you&rsquo;ve got the hang of it, it&rsquo;s quite quick to develop in</li>
+<li>It makes no assumptions about the rest of your stack so you can integrate it with anything</li>
+<li>Components are composable and/or nestable</li>
+<li>There are some big names behind it or using it in production (Facebook, instagram, Khan Academy)</li>
+<li>It&rsquo;s fast because it uses a virtual DOM diff to calculate operations.</li>
+</ul>
+<p>Cons:</p>
+<ul>
+<li>If you use the JSX extension, it will probably break a lot of your syntax highlighting in your IDE</li>
+<li>You&rsquo;ll need to find a way to get JSHint working with your code (there&rsquo;s a fork here: <a href="https://npmjs.org/package/jsxhint">https://npmjs.org/package/jsxhint</a>)</li>
+<li>Mixing logic with Markup feels a bit dirty.</li>
+</ul>
+<h3 id="building-the-calculator">Building the calculator</h3>
+<p>Now on to the fun stuff. I will be making the calculator by combining several subcomponents together. Below is a diagram of the different components that will make up the calculator:</p>
+<p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/resistance-calculator-annotated.png" alt="Subcomponents"></p>
+<p>Here&rsquo;s how the hierarchy looks in JSX:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>I&rsquo;ll post the code for each component here with a small discussion of what&rsquo;s going on inside.</p>
+<h4 id="componentsohmageindicatorjs">components/OhmageIndicator.js</h4>
+<p>This component displays the actual calculated ohmage of the resistor. Notice it doesn&rsquo;t actually do the calculation, a higher level component takes care of that. The only logic in this component is concerned with rendering an appropriate unit of resistance, be it Ω, KΩ or MΩ.</p>
+<p>This component only expects 1 <code>prop</code> to be passed, <code>resistance</code>.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h4 id="componentstoleranceindicatorjs">components/ToleranceIndicator.js</h4>
+<p>Similar to the OhmageIndicator, this component isn&rsquo;t very smart, it just takes a numeric value as a <code>prop</code> and shows it as a ±% or shows nothing if the tolerance is 0.</p>
+<p>The function <code>printTolerance()</code> is acting like a view helper in a templating language, taking a data model and prettifying it for ouput.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h4 id="componentssvgresistorjs">components/SVGResistor.js</h4>
+<p>This component dynamically renders an SVG drawing of the resistor. It has a method to translate a band&rsquo;s numeric value to its corresponding colour via an object passed in as a <code>prop</code>.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h4 id="componentsbandselectorjs">components/BandSelector.js</h4>
+<p>This renders a select menu. To communicate changes back to the owner, the owner has passed a callback as a <code>prop</code>, thus creating a line of communication back to the owner. The component will call that callback with some arguments to notify the owner it needs to update its state.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h4 id="componentsindexjs-resistancecalculator">components/index.js (ResistanceCalculator)</h4>
+<p>This component is the glue that holds the calculator together and manages all the <code>state</code>, passes <code>props</code> and performs the resistance calculation.</p>
+<p>When the state in this component changes, and props that have been passed will also update the children&rsquo;s DOM.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>Lastly to instantiate the component and mount it to the DOM, passing in some configuration:</p>
+<h4 id="mainjs">main.js</h4>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h3 id="the-result">The result</h3>
+<!-- raw HTML omitted -->
+<p>Please feel free to comment with suggestions or improvements.</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

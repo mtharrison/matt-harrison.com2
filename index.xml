@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Home on Matt Harrison</title>
+    <link>https://matt-harrison.com/</link>
+    <description>Recent content in Home on Matt Harrison</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 19 May 2019 23:29:08 +0100</lastBuildDate>
+    
+	<atom:link href="https://matt-harrison.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>First experience with GitHub Actions</title>
+      <link>https://matt-harrison.com/posts/github-actions/</link>
+      <pubDate>Sun, 05 Jul 2020 12:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/github-actions/</guid>
+      <description>I want to share with you my first experience working with GitHub Actions. They&amp;rsquo;re really neat and definitely worth your time if you&amp;rsquo;re a fan of automation.
+Background This weekend I was working on a small personal project: a GitHub PR Comment resource for Concourse CI. That isn&amp;rsquo;t what this post is about really but first a little context.
+The project I was building is a Go project. When built, it consists of 2 built binaries check and in.</description>
+    </item>
+    
+    <item>
+      <title>An introduction to hacking on Deno</title>
+      <link>https://matt-harrison.com/posts/hacking-on-deno/</link>
+      <pubDate>Wed, 29 May 2019 19:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/hacking-on-deno/</guid>
+      <description>I&amp;rsquo;ve recently been playing around with Deno - the &amp;ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&amp;rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&amp;rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node.</description>
+    </item>
+    
+    <item>
+      <title>Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)</title>
+      <link>https://matt-harrison.com/posts/rust-sys-crate/</link>
+      <pubDate>Wed, 22 Aug 2018 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/rust-sys-crate/</guid>
+      <description>Rust is an awesome language and platform to use, however there&amp;rsquo;s so much great software already written in c/c++. Luckily it&amp;rsquo;s not too complicated to make use of c/c++ projects in Rust. In this short post I&amp;rsquo;ll show you how.
+From a high-level perspective you can take any c/c++ project, for this example I&amp;rsquo;m going to use Duktape, the lightweight embeddable JavaScript engine. I&amp;rsquo;m choosing Duktape because it&amp;rsquo;s very simple to build it - it&amp;rsquo;s just 1 .</description>
+    </item>
+    
+    <item>
+      <title>Ray Tracing: WebAssembly vs JavaScript</title>
+      <link>https://matt-harrison.com/posts/raytracing-webassembly-vs-javascript/</link>
+      <pubDate>Sun, 12 Aug 2018 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/raytracing-webassembly-vs-javascript/</guid>
+      <description>I&amp;rsquo;ve spent the last couple of weeks learning about the art and science of Ray Tracing. Ray tracing, for those who aren&amp;rsquo;t familiar is one technique for generating 3d computer graphics. Ray tracing isn&amp;rsquo;t the fastest way to generate 3d images but it&amp;rsquo;s appeal lies in both the realistic effects that can be achieved and in the elegance of simplicity of the technique. This technique is used in movies and for photo-realistic architectural renderings.</description>
+    </item>
+    
+    <item>
+      <title>Supercharge your frontend with Rust 🦀 and Wasm 🚀</title>
+      <link>https://matt-harrison.com/posts/supercharge/</link>
+      <pubDate>Tue, 10 Jul 2018 23:29:08 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/supercharge/</guid>
+      <description>A quick guide to creating, packaging and using your first WebAssembly module with Rust, wasm-pack and friends&amp;hellip; I&amp;rsquo;m guessing if you&amp;rsquo;re here you&amp;rsquo;ve already heard about WebAssembly and you just want to get started building something without reading pages of specification, complex explanations or stewing your brains in binary.
+If you don&amp;rsquo;t know what WebAssembly (AKA Wasm) is yet, it&amp;rsquo;s a new low-level language that can be executed by modern browsers, that traditionally only ran JavaScript.</description>
+    </item>
+    
+    <item>
+      <title>Solving Towers of Hanoi with TLA&#43;</title>
+      <link>https://matt-harrison.com/posts/hanoi-tla/</link>
+      <pubDate>Mon, 04 Apr 2016 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/hanoi-tla/</guid>
+      <description>Recently I&amp;rsquo;ve been reading Leslie Lamport&amp;rsquo;s Specifying Systems book. It&amp;rsquo;s free to read online, but I bought the hardcopy as I&amp;rsquo;m old fashioned like that.
+Ever since I discovered TLA+, I&amp;rsquo;ve been fascinated with the idea of using precise language to describe systems upfront. Often as developers we either don&amp;rsquo;t do any upfront specification and just hope to wing it, or we very imprecisely add comments to our code as we go.</description>
+    </item>
+    
+    <item>
+      <title>Using hapi.js with Socket.io</title>
+      <link>https://matt-harrison.com/posts/hapi-socket-io/</link>
+      <pubDate>Tue, 03 Mar 2015 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/hapi-socket-io/</guid>
+      <description>Socket.io and hapi.js are two great pieces of software for Node. There&amp;rsquo;s no official documentation on how they work together though. I&amp;rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&amp;rsquo;d write a quick tutorial to show just how easy it is to integrate the two.
+The listener Every hapi server comes with a listener property:
+var Hapi = require(&#39;hapi&#39;); var server = new Hapi.Server(); server.</description>
+    </item>
+    
+    <item>
+      <title>BSprites:  Combined web assets using Typed Arrays and Data URIs</title>
+      <link>https://matt-harrison.com/posts/bsprites/</link>
+      <pubDate>Mon, 28 Jul 2014 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/bsprites/</guid>
+      <description>Disclaimer: This was a weird idea I had one day and put this together the same evening. I&amp;rsquo;ve not tested it cross-browser or in a production environment. I&amp;rsquo;ve not benchmarked this either vs actually downloading all the images. It&amp;rsquo;s kind of a &amp;lsquo;what if&amp;rsquo; project at the moment. If you think it&amp;rsquo;s really dumb or cool, I&amp;rsquo;d be really interested to hear your thoughts.
+ Generally, whenever a browser loads a new image, it will make a new HTTP request to the server.</description>
+    </item>
+    
+    <item>
+      <title>Express to Hapi.js</title>
+      <link>https://matt-harrison.com/posts/express-to-hapi/</link>
+      <pubDate>Wed, 23 Jul 2014 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/express-to-hapi/</guid>
+      <description>This isn&amp;rsquo;t an X is better than Y post. I love Express, I still think it&amp;rsquo;s a really great module and I&amp;rsquo;ve used it successfully in many projects.
+That being said, I&amp;rsquo;m hearing good things about Hapi.js (referred to as Hapi from hereon in) recently which is another HTTP server framework for Node.js. So I figured it was time to check it out. As most people who I imagine come to Hapi, I have experience with Express and I&amp;rsquo;m wondering how it differs.</description>
+    </item>
+    
+    <item>
+      <title>Keeping on top of invoices with the Freshbooks API and Ruby</title>
+      <link>https://matt-harrison.com/posts/freshbooks/</link>
+      <pubDate>Mon, 24 Mar 2014 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/freshbooks/</guid>
+      <description>Freshbooks is a great tool as a freelancer, for managing your billing and sending invoices. It is however lacking in a few places for me.
+One thing I really want to see when I log in is how many days have elapsed since I sent each invoice out. Yes I could work this out from the dates, but I don&amp;rsquo;t have the time quite often so things start slipping.
+Luckily there&amp;rsquo;s an API we can use, and I knocked up this Ruby script in 10 minutes to give me a nicely formatted view of all my active invoices and the days since I created them.</description>
+    </item>
+    
+    <item>
+      <title>Building a complex web component with Facebook&#39;s React Library</title>
+      <link>https://matt-harrison.com/posts/complex-react/</link>
+      <pubDate>Fri, 03 Jan 2014 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/complex-react/</guid>
+      <description>Edit (12-2016): This article has been updated for React 0.14 and ES2015
+React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&amp;rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&amp;rsquo;s what we&amp;rsquo;ll be building:
+I&amp;rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator.</description>
+    </item>
+    
+    <item>
+      <title>Perfect web audio on iOS devices with the Web Audio API</title>
+      <link>https://matt-harrison.com/posts/web-audio/</link>
+      <pubDate>Thu, 02 Jan 2014 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/web-audio/</guid>
+      <description>TL;DR A lot of the restrictions imposed on the HTML5 audio element by iOS can be overcome by using the Web Audio API.
+ If you&amp;rsquo;ve ever built a web based game that requires sound effects, you&amp;rsquo;ve no doubt felt the frustration of getting what is trivial to implement on desktop browsers to work smoothly on iOS devices.
+Initally the obvious way to implement audio is to use the HTML5 &amp;lt;audio&amp;gt; element.</description>
+    </item>
+    
+    <item>
+      <title>Capturing infrared packets with Arduino and plotting them with HTML5 canvas</title>
+      <link>https://matt-harrison.com/posts/arduino/</link>
+      <pubDate>Sun, 27 Oct 2013 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/arduino/</guid>
+      <description>I had an old DVD player lying around that wasn&amp;rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).
+I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.</description>
+    </item>
+    
+    <item>
+      <title>Hacker News in your terminal!</title>
+      <link>https://matt-harrison.com/posts/hacker-news/</link>
+      <pubDate>Fri, 25 Oct 2013 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/hacker-news/</guid>
+      <description>If you&amp;rsquo;re anything like me, you visit Hacker news at least 4 times a day and you spend a lot of time in the terminal.
+I usually open the Hacker News site in my browser and decide if any of the headlines catch my attention, I thought it would be cool if I could see a summary of the new featured posts in my terminal and only open them in a browser if I wanted to read them, so I made this simple tool.</description>
+    </item>
+    
+    <item>
+      <title>Universities don&#39;t help you to stay foolish - My experience with unhelpful admissions at Manchester University</title>
+      <link>https://matt-harrison.com/posts/universities/</link>
+      <pubDate>Fri, 18 Oct 2013 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/universities/</guid>
+      <description>“I always thought of myself as a humanities person as a kid, but I liked electronics. Then I read something that one of my heroes, Edwin Land of Polaroid, said about the importance of people who could stand at the intersection of humanities and sciences, and I decided that’s what I wanted to do.”
+  - Steve Jobs
+ Let&amp;rsquo;s be honest; not everybody gets university right the first time around.</description>
+    </item>
+    
+    <item>
+      <title>Natwest.js</title>
+      <link>https://matt-harrison.com/posts/natwest/</link>
+      <pubDate>Thu, 17 Oct 2013 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/natwest/</guid>
+      <description>A command line banking tool written in Node.js
+Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.
+Installation PhantomJS is required for this tool to work, Installation instructions are here: http://phantomjs.</description>
+    </item>
+    
+    <item>
+      <title>Largest product in a grid</title>
+      <link>https://matt-harrison.com/posts/largest-product/</link>
+      <pubDate>Wed, 16 Oct 2013 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/largest-product/</guid>
+      <description>I&amp;rsquo;ve recently started learning Ruby and also been working my way through the programming problems on http://projecteuler.net/ so I decided to combine the 2.
+Here&amp;rsquo;s my attempt at problem 11.
+##The problem
+What is the greatest product of four adjacent numbers in the same direction (up, down, left, right, or diagonally) in the 20×20 grid below?
+##My Solution</description>
+    </item>
+    
+  </channel>
+</rss>

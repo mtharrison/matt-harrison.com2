@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Using hapi.js with Socket.io &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Using hapi.js with Socket.io">
+<meta itemprop="description" content="Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.
+The listener Every hapi server comes with a listener property:
+var Hapi = require(&#39;hapi&#39;); var server = new Hapi.Server(); server.">
+<meta itemprop="datePublished" content="2015-03-03T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2015-03-03T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="787">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Using hapi.js with Socket.io"/>
+<meta name="twitter:description" content="Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.
+The listener Every hapi server comes with a listener property:
+var Hapi = require(&#39;hapi&#39;); var server = new Hapi.Server(); server."/>
+
+
+<meta property="og:title" content="Using hapi.js with Socket.io" />
+<meta property="og:description" content="Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.
+The listener Every hapi server comes with a listener property:
+var Hapi = require(&#39;hapi&#39;); var server = new Hapi.Server(); server." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/hapi-socket-io/" />
+<meta property="article:published_time" content="2015-03-03T00:00:00+01:00" />
+<meta property="article:modified_time" content="2015-03-03T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Using hapi.js with Socket.io</h1>
+
+  <div class="post-date">
+    <time datetime="2015-03-03T00:00:00&#43;0100">Mar 3, 2015</time> &middot; 4 min read
+  </div>
+
+  <p>Socket.io and hapi.js are two great pieces of software for Node. There&rsquo;s no official documentation on how they work together though. I&rsquo;ve seen questions about this several times on Twitter and Github, so I thought I&rsquo;d write a quick tutorial to show just how easy it is to integrate the two.</p>
+<h3 id="the-listener">The listener</h3>
+<p>Every hapi server comes with a <code>listener</code> property:</p>
+<pre><code>var Hapi = require('hapi');
+
+var server = new Hapi.Server();
+server.connection({ port: 4000 });
+
+var listener = server.listener; // &lt;--- The listener
+</code></pre>
+<p>That <code>listener</code> object, in this case, is a node <code>http</code> (or <code>https</code>) server. Exactly the same as you would get from the following:</p>
+<pre><code>var Http = require('http');
+
+var listener = Http.createServer(function (req, res){
+    ...
+});
+</code></pre>
+<p>Whenever you create a new connection in hapi, it goes and creates a new <code>http</code> server for you internally. This gets set to <code>this.listener</code>.</p>
+<h3 id="setting-up-socketio">Setting up Socket.io</h3>
+<p>The offical Socket.io docs show how to set up socket.io when using a vanilla node <code>http</code> server.</p>
+<pre><code>var handler = function (req, res) {
+  ...
+};
+
+var app = require('http').createServer(handler);
+var io = require('socket.io')(app); // &lt;--- what's this 'app' thing?
+
+app.listen(80);
+</code></pre>
+<p>The <code>app</code> variable in the above example is an instance of a node <code>http</code> server, just like our hapi server&rsquo;s <code>listener</code>.</p>
+<p>We can take this knowledge that socket.io can be initialized with an <code>http</code> server over to hapi:</p>
+<pre><code>var Hapi = require('hapi');
+
+var server = new Hapi.Server();
+server.connection({ port: 4000 });
+
+var io = require('socket.io')(server.listener);
+
+io.on('connection', function (socket) {
+
+    socket.emit('Oh hii!');
+
+    socket.on('burp', function () {
+        socket.emit('Excuse you!');
+    });
+});
+
+server.start();
+</code></pre>
+<p>Pretty straightforward right? Socket.io will go and attach itself to the listener (server). You can make sure it&rsquo;s working by going to http://localhost:4000/socket.io/socket.io.js, you should see the socket.io client JS file being served.</p>
+<h3 id="why-isnt-there-some-kind-of-conflict-between-hapi-and-socketio">Why isn&rsquo;t there some kind of conflict between hapi and socket.io?</h3>
+<p>Every Node <code>http</code> server can have several listener (yeah&hellip;a different meaning of listener) functions for the <code>request</code> event. When you setup socket.io, it will remove all existing listeners (including the one added by hapi):</p>
+<pre><code>var listeners = server.listeners('request').slice(0);
+server.removeAllListeners('request');
+</code></pre>
+<p>By removing all existing listeners, socket.io is ensuring it gets to the request first.</p>
+<p>But it will keep hold of any others and if it decides the request isn&rsquo;t intended for socket.io (i.e. the url doesn&rsquo;t start /socket.io), it will call those other listener function instead, giving control back to hapi.</p>
+<h3 id="how-about-when-using-multiple-connections">How about when using multiple connections?</h3>
+<p>A &ldquo;server&rdquo; in hapi is semantically different to a &ldquo;server&rdquo; in node. A server in hapi may be listening on several different ports all at once by using multiple connections.</p>
+<p>If your hapi server has multiple connections, it really has multiple node <code>http</code> servers running for you in the background. The <code>listener</code> property of the hapi server is always going to point to the <code>http</code> server on the first connection. If you want to attach socket.io to a different connection, you can use labels and <code>server.select()</code>:</p>
+<pre><code>var Hapi = require('hapi');
+
+var server = new Hapi.Server();
+server.connection({ port: 4000, labels: ['api'] });
+server.connection({ port: 4001, labels: ['chat'] });
+
+var io = require('socket.io')(server.select('chat').listener);
+
+io.on('connection', function (socket) {
+
+    socket.emit('Oh hii!');
+
+    socket.on('burp', function () {
+        socket.emit('Excuse you!');
+    });
+});
+
+server.start();
+</code></pre>
+<h3 id="what-about-plugins">What about plugins?</h3>
+<p>My favourite feature of hapi is plugins without a doubt. I love the way you can split up your concerns into separate modules. If I&rsquo;m using socket.io with hapi, I always embrace the plugin approach to split my realtime concerns into their own plugin.</p>
+<pre><code>.
+├── chat	&lt;--- My hapi plugin
+│   ├── handlers.js
+│   └── index.js
+└── index.js
+</code></pre>
+<h5 id="indexjs">index.js</h5>
+<pre><code>var Hapi = require('hapi');
+
+var server = new Hapi.Server();
+
+server.connection({ port: 4000, labels: ['api'] });
+server.connection({ port: 4001, labels: ['chat'] });
+
+server.register(require('./chat'), function (err) {
+
+    if (err) {
+        throw err;
+    }
+
+    server.start();
+});
+</code></pre>
+<h5 id="chatindexjs">chat/index.js</h5>
+<pre><code>var Handlers = require('./handlers');
+
+exports.register = function (server, options, next) {
+
+    var io = require('socket.io')(server.select('chat').listener);
+
+    io.on('connection', function (socket) {
+
+        console.log('New connection!');
+
+        socket.on('hello', Handlers.hello);
+        socket.on('newMessage', Handlers.newMessage);
+        socket.on('goodbye', Handlers.goodbye);
+    });
+
+    next();
+};
+
+exports.register.attributes = {
+    name: 'hapi-chat'
+};
+</code></pre>
+<h5 id="chathandlersjs-socketio-is-kind-enough-to-bind-your-handlers-to-the-socket-so-this-is-equal-to-the-socket-object">chat/handlers.js (socket.io is kind enough to bind your handlers to the socket so <code>this</code> is equal to the socket object)</h5>
+<pre><code>exports.hello = function () {
+
+    this.emit('Hi back at you');
+};
+
+exports.newMessage = function (newMessage) {
+
+    console.log('Got message', newMessage);
+};
+
+exports.goodbye = function () {
+
+    this.emit('Take it easy, pal');
+};
+</code></pre>
+<p>I find this is a really clean approach to divide up apps that use both hapi and socket.io.</p>
+<h3 id="thats-it">That&rsquo;s it!</h3>
+<p>I hope this short tutorial has been of some help you to. If you&rsquo;ve any suggestestions or corrections, please leave a comment or get me at @mt_harrison.</p>
+<h3 id="the-book">The book</h3>
+<!-- raw HTML omitted -->
+<p><!-- raw HTML omitted -->I&rsquo;m currently in the process of writing a book about hapi. <!-- raw HTML omitted -->Hapi.js in Action<!-- raw HTML omitted --> is available now as a MEAP from Manning Publications. Use my author code <!-- raw HTML omitted -->mlharrison<!-- raw HTML omitted --> to get 50% off, for a limited time only.</p>
+<!-- raw HTML omitted -->
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

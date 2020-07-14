@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>An introduction to hacking on Deno &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="An introduction to hacking on Deno">
+<meta itemprop="description" content="I&rsquo;ve recently been playing around with Deno - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node.">
+<meta itemprop="datePublished" content="2019-05-29T19:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2019-05-29T19:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="2245">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="An introduction to hacking on Deno"/>
+<meta name="twitter:description" content="I&rsquo;ve recently been playing around with Deno - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node."/>
+
+
+<meta property="og:title" content="An introduction to hacking on Deno" />
+<meta property="og:description" content="I&rsquo;ve recently been playing around with Deno - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very unprofessionally for just over a year.
+Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/hacking-on-deno/" />
+<meta property="article:published_time" content="2019-05-29T19:00:00+01:00" />
+<meta property="article:modified_time" content="2019-05-29T19:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>An introduction to hacking on Deno</h1>
+
+  <div class="post-date">
+    <time datetime="2019-05-29T19:00:00&#43;0100">May 29, 2019</time> &middot; 11 min read
+  </div>
+
+  <p>I&rsquo;ve recently been playing around with <a href="https://github.com/denoland/deno">Deno</a> - the &ldquo;secure JavaScript/TypeScript runtime built with V8, Rust, and Tokio&rdquo;. The reason being is that this lies at the intersection of a couple of my main interests: JavaScript and Rust. I&rsquo;ve been writing JS professionally now for around 5 years and Rust very <em>unprofessionally</em> for just over a year.</p>
+<p>Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled <a href="https://www.youtube.com/watch?v=M3BM9TB-8yA">10 things I regret about node.js</a> at JSConf EU 2018. Deno is his vision for a security-conscious modern successor to Node.js that stays truer to JavaScript&rsquo;s web heritage and works with rather against the grain of V8&rsquo;s sandbox. I definitely recommend you listen to the full talk if you haven&rsquo;t already.</p>
+<p>I&rsquo;m hoping to contribute to the Deno project because I think it will be a good way to learn more about Rust on an actual project with real-world complexity, it also seems like a lot of fun. To dip my toes in before I try to pick up a real issue, I decided that I&rsquo;d try to add a couple of dummy &ldquo;features&rdquo; to Deno. It was quite a fun and enlightening exploration so I wanted to share it with the hope that it will also be useful for any other would-be contributors to Deno in the future.</p>
+<h2 id="architecture-of-deno">Architecture of Deno</h2>
+<p>Many parallels can be drawn between Deno&rsquo;s architecture and how a Unix operating system is organised. In Deno, there is an unprivileged user space, where code is written in TypeScript then compiled and executed in a JavaScript sandbox by V8. To interact with the system, the user space code must dispatch messages (like OS system calls) to the privileged side, which is written in Rust and linked in with V8. This comparison isn&rsquo;t just my own observation but actually stated in the <a href="https://deno.land/manual.html">Deno manual</a>:</p>
+<!-- raw HTML omitted -->
+<p>This can be contrasted to the situation we have in Node.js where the interface between JS and native code is a lot less, contained, shall we say. Native modules can punch holes into JavaScript from anywhere, inserting functions which have access to your system into the global scope of your scripts. Suddenly the code running in your sandbox isn&rsquo;t really all that sandboxed at all. The benefits of Deno&rsquo;s approach is that it&rsquo;s easier to keep track of what your programs are doing by using a single system call interface, including the resources they&rsquo;re using like files and sockets. It also makes it easy to apply capability-based permissions on executing scripts. Deno defaults scripts to having no access to things like network, host filesystem etc. You must give these permissions explicitly by passing flags e.g. <code>--allow-net</code> and <code>--allow-write</code>.</p>
+<p>Security approach isn&rsquo;t the only difference between Node and Deno, <a href="https://deno.land/manual.html">the manual</a> is a great place to learn more.</p>
+<p>Deno provides the same asynchronous non-blocking I/O as default that Node.js does. Where Node.js relies on <a href="https://github.com/libuv/libuv">libuv</a>, Deno makes uses of the evolving async I/O stack in Rust composed of <a href="https://github.com/tokio-rs/tokio">Tokio</a> and <a href="https://github.com/tokio-rs/mio">Mio</a>.</p>
+<h2 id="getting-and-building-deno">Getting and building Deno</h2>
+<p><a href="https://deno.land/manual.html#buildfromsource">First, be sure to follow the instructions here to download and build the Deno source code on your machine.</a></p>
+<h2 id="adding-a-typescript-feature-to-the-userspace-api">Adding a TypeScript feature to the userspace API</h2>
+<p>Let&rsquo;s start off easy, first let&rsquo;s add to the global <code>Deno</code> namespace that&rsquo;s available to all programs via <code>global.Deno</code>.</p>
+<p>Let&rsquo;s add a new file under <code>deno/js/number.ts</code> and add the following contents:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">export</span> <span style="color:#a6e22e">async</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">myNumber</span>()<span style="color:#f92672">:</span> Promise<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">number</span><span style="color:#f92672">&gt;</span> {
+  <span style="color:#66d9ef">return</span> Promise.<span style="color:#a6e22e">resolve</span>(<span style="color:#ae81ff">42</span>);
+}
+</code></pre></div><p>We&rsquo;ll need to expose this on <code>Deno</code> namespace by adding the following to <code>deno/js/deno.ts</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">export</span> { <span style="color:#a6e22e">myNumber</span> } <span style="color:#a6e22e">from</span>  <span style="color:#e6db74">&#34;./number&#34;</span>;
+</code></pre></div><p>Rebuild Deno by running <code>./tools/build.py</code>. You might be surprised that we need to rebuild the <code>deno</code> executable after this change because we only changed TypeScript. Deno actually pre-compiles the TypeScript in the core library into a JS bundle then builds all this code into the Deno binary as a <a href="https://v8.dev/blog/custom-startup-snapshots">V8 snapshot</a>, hence why we need to recompile and link the main executable. This speeds up the startup of the Deno process which is great for users but can slow down development a little.</p>
+<p><em>aside</em>:I think there might be a way to avoid actually rebuilding the binary and have the core library loaded and runtime via some build options but I couldn&rsquo;t figure out how to do this, if you know please shout me @mt_harrison.</p>
+<p>Let&rsquo;s write a Deno script now to test our new core function, I&rsquo;m going to put my example scripts inside <code>examples</code>.</p>
+<pre><code>mkdir examples
+touch examples/number.ts
+</code></pre><p>Inside <code>examples/number.ts</code> we add:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">async</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">main</span>() {
+
+  <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">`The magic number is </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">await</span> <span style="color:#a6e22e">Deno</span>.<span style="color:#a6e22e">myNumber</span>()<span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>);
+};
+
+<span style="color:#a6e22e">main</span>();
+</code></pre></div><p>Deno doesn&rsquo;t support top-level <code>await</code> yet so we wrap our code in a <code>async function main() {}</code> function to get around that.</p>
+<p>We can test our script out now by running <code>./target/debug/deno run examples/number.ts</code>. All being well you should see:</p>
+<pre><code>The magic number is 42
+</code></pre><p>This is all well and good but it&rsquo;s not as exciting as getting our paws muddied by writing some Rust, right? Agreed? Then onwards&hellip;</p>
+<h2 id="some-deno-rust---ts-basics">Some Deno Rust &lt;-&gt; TS basics</h2>
+<p>Pure JavaScript executing in V8 has limited functionality, aside from the built-in language features of course. Anything else that interacts with the operating system, such as networking, timers and process control needs to be provided by the host environment. That host environment in the case of Node.js is written in C++ and for Deno it&rsquo;s written in Rust.</p>
+<p>First let&rsquo;s touch upon how we communicate between TS and Rust. Remember when I mentioned that <a href="https://github.com/nodejs/node/blob/master/src/node_process_object.cc#L165">Node.js pokes holes into V8</a>, injecting functions for each of the features it provides. Deno takes a different approach, instead it only pokes a single hole into V8 and provides a single function <code>dispatch()</code> that can be called from unpriviledged code. <code>dispatch()</code> accepts a message which may be one of many types, along with additional arguments and a buffer. <code>dispatch()</code> returns a message (or a <code>Promise</code> over a message). By using this very controlled method of message passing, Deno exerts much more restraint over the sandbox.</p>
+<p>But what is this message? And isn&rsquo;t it expensive to keep passing them around? Rust uses <a href="https://google.github.io/flatbuffers/">Flatbuffers</a> to encode typed messages which are passed between Rust and JS as byte buffers. The message fields can then be read in place very efficiently with no (de)serialization required.</p>
+<h2 id="adding-a-synchronous-rust-feature-to-the-privileged-side">Adding a synchronous Rust feature to the privileged side</h2>
+<p>To add a new feature to the Rust side we&rsquo;ll need to define a new Flatbuffers message. Well two actually, one for the request and one for the response. To do this we open up <code>cli/msg.fbs</code> and add our new messages:</p>
+<pre><code>...
+
+table MyPid {}
+
+table MyPidRes {
+  pid: uint32;
+}
+
+root_type Base
+</code></pre><p>Node that our request message type <code>MyPid</code> has no fields because there&rsquo;s no arguments we need to pass along. The response message <code>MyPidRes</code> has just one, the pid as a <code>uint32</code>.</p>
+<p>This file will be compiled with <code>flatc</code> - the flatbuffers compiler, into both Rust and TypeScript code which provides an API for reading and writing the Flatbuffers. If you&rsquo;ve ever use Protocol Buffers and protoc before, this is very similar. We don&rsquo;t need to invoke <code>flatc</code> ourselves though as this is taken care of by the build system (which is <a href="https://chromium.googlesource.com/chromium/src/tools/gn/+/48062805e19b4697c5fbd926dc649c78b6aaa138/README.md">GN</a> by the way).</p>
+<p>Now we need to write the code that will receive the <code>MyPid</code> message and return the <code>MyPidRes</code> message in Rust and vice-versa in TypeScript. Let&rsquo;s start with the TypeScript side. We&rsquo;ll add this in <code>js/myPid.ts</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">import</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">as</span> <span style="color:#a6e22e">flatbuffers</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./flatbuffers&#34;</span>;
+<span style="color:#66d9ef">import</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">as</span> <span style="color:#a6e22e">msg</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;gen/cli/msg_generated&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">sendSync</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./dispatch&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">assert</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./util&#34;</span>;
+
+
+<span style="color:#66d9ef">export</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">myPid</span>()<span style="color:#f92672">:</span> <span style="color:#a6e22e">number</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">builder</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">flatbuffers</span>.<span style="color:#a6e22e">createBuilder</span>();
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">inner</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">MyPid</span>.<span style="color:#a6e22e">createMyPid</span>(<span style="color:#a6e22e">builder</span>);
+
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">baseRes</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">sendSync</span>(<span style="color:#a6e22e">builder</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Any</span>.<span style="color:#a6e22e">MyPid</span>, <span style="color:#a6e22e">inner</span>)<span style="color:#f92672">!</span>;
+  <span style="color:#a6e22e">assert</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Any</span>.<span style="color:#a6e22e">MyPidRes</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">baseRes</span>.<span style="color:#a6e22e">innerType</span>());
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">MyPidRes</span>();
+  <span style="color:#a6e22e">assert</span>(<span style="color:#a6e22e">baseRes</span>.<span style="color:#a6e22e">inner</span>(<span style="color:#a6e22e">res</span>) <span style="color:#f92672">!==</span> <span style="color:#66d9ef">null</span>);
+
+  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">pid</span>();
+}
+</code></pre></div><p>A lot of the TypeScript core code has similar boilerplate to it: we first create a flatbuffers builder and then create an instance of the message type we want to dispatch, in this case <code>MyPid</code>. Then we call <code>sendSync()</code> which is a wrapper around <code>Deno.core.dispatch()</code> which actually does the inter-language communication. We get a generic response message back, which we convert to a specialized type by calling <code>message.inner(T)</code>.</p>
+<p>We can then get at the fields of the response by calling methods corresponding to their names.</p>
+<p>All that&rsquo;s left now is to write the Rust side of things. We&rsquo;ll do this in <code>cli/ops.rs</code>. Deno refers to its bindings between Rust and TS, or its syscalls as Ops. To handle the <code>MyPid</code> message we need to write a new Op.</p>
+<p>First we&rsquo;ll add a clause to the <code>match</code> statement that matches on the type of the incoming message:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust">  msg::Any::Write <span style="color:#f92672">=&gt;</span> Some(op_write),
+  msg::Any::MyPid <span style="color:#f92672">=&gt;</span> Some(op_my_pid),       <span style="color:#75715e">// we&#39;re adding this
+</span><span style="color:#75715e"></span>  msg::Any::Resolve <span style="color:#f92672">=&gt;</span> Some(op_resolve),
+</code></pre></div><p>We need to write the function <code>op_my_pid()</code> too:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">op_my_pid</span>(
+  _state: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">ThreadSafeState</span>,
+  base: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">msg</span>::Base<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;_</span><span style="color:#f92672">&gt;</span>,
+  _data: Option<span style="color:#f92672">&lt;</span>PinnedBuf<span style="color:#f92672">&gt;</span>,
+) -&gt; Box<span style="color:#f92672">&lt;</span>OpWithError<span style="color:#f92672">&gt;</span> {
+  <span style="color:#66d9ef">let</span> builder <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> FlatBufferBuilder::new();
+  <span style="color:#66d9ef">let</span> inner <span style="color:#f92672">=</span> msg::MyPidRes::create(
+    builder,
+    <span style="color:#f92672">&amp;</span>msg::MyPidResArgs {
+      pid: <span style="color:#a6e22e">std</span>::process::id(),
+    },
+  );
+
+  ok_future(serialize_response(
+    base.cmd_id(),
+    builder,
+    msg::BaseArgs {
+      inner: Some(inner.as_union_value()),
+      inner_type: <span style="color:#a6e22e">msg</span>::Any::MyPidRes,
+      ..Default::default()
+    },
+  ))
+}
+</code></pre></div><p>There&rsquo;s quite a lot going on here so I&rsquo;ll explain things line by line&hellip;</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#ae81ff">1.</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">op_my_pid</span>(
+<span style="color:#ae81ff">2.</span>   _state: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">ThreadSafeState</span>,
+</code></pre></div><p>Every op receives this <code>state</code> parameter, a shared reference to a <code>ThreadSafeState</code>. This is a struct defined as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">ThreadSafeState</span>(Arc<span style="color:#f92672">&lt;</span>State<span style="color:#f92672">&gt;</span>);
+</code></pre></div><p>We can see it&rsquo;s a struct that wraps a <code>State</code> struct in an <a href="https://doc.rust-lang.org/std/sync/struct.Arc.html"><code>Arc</code></a> so it can be shared accross threads. <code>State</code> definition looks like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// Isolate cannot be passed between threads but ThreadSafeState can.
+</span><span style="color:#75715e">// ThreadSafeState satisfies Send and Sync.
+</span><span style="color:#75715e">// So any state that needs to be accessed outside the main V8 thread should be
+</span><span style="color:#75715e">// inside ThreadSafeState.
+</span><span style="color:#75715e"></span><span style="color:#75715e">#[cfg_attr(feature = </span><span style="color:#e6db74">&#34;cargo-clippy&#34;</span><span style="color:#75715e">, allow(stutter))]</span>
+<span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">State</span> {
+  <span style="color:#66d9ef">pub</span> dir: <span style="color:#a6e22e">deno_dir</span>::DenoDir,
+  <span style="color:#66d9ef">pub</span> argv: Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>,
+  <span style="color:#66d9ef">pub</span> permissions: <span style="color:#a6e22e">DenoPermissions</span>,
+  <span style="color:#66d9ef">pub</span> flags: <span style="color:#a6e22e">flags</span>::DenoFlags,
+  ... <span style="color:#75715e">// clipped
+</span></code></pre></div><p>The comment is quite clear here. We can&rsquo;t pass the V8 Isolate between threads so we have this thread safe container for all the rest of the state that our program might need to access, such as the permissions, flags and arguments passed to the process.</p>
+<p>Ok, let&rsquo;s look at the next part:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#ae81ff">3.</span>   base: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">msg</span>::Base<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;_</span><span style="color:#f92672">&gt;</span>,
+<span style="color:#ae81ff">4.</span>   _data: Option<span style="color:#f92672">&lt;</span>PinnedBuf<span style="color:#f92672">&gt;</span>,
+</code></pre></div><p>The <code>base</code> parameter is just a reference to the generic flatbuffers message we received, which we&rsquo;ll see how to turn it into a specialized instance later. <code>data</code> is an <code>Option&lt;PinnedBuf&gt;</code>. <code>data</code> is basically a writable buffer of bytes that has been borrowed from JavaScript. We&rsquo;d use this if we wanted to efficiently transfer raw bytes to JavaScript, for instance <code>data</code> is used in <code>read/write</code> Ops. In this example we&rsquo;ve prefixed <code>data</code> and <code>state</code> with <code>_</code> as we&rsquo;re not using them.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#ae81ff">5.</span>  ) -&gt; Box<span style="color:#f92672">&lt;</span>OpWithError<span style="color:#f92672">&gt;</span> {
+<span style="color:#ae81ff">6.</span>    <span style="color:#66d9ef">let</span> builder <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> FlatBufferBuilder::new();
+<span style="color:#ae81ff">7.</span>    <span style="color:#66d9ef">let</span> inner <span style="color:#f92672">=</span> msg::MyPidRes::create(
+<span style="color:#ae81ff">8.</span>      builder,
+<span style="color:#ae81ff">9.</span>     <span style="color:#f92672">&amp;</span>msg::MyPidResArgs {
+<span style="color:#ae81ff">10.</span>       pid: <span style="color:#a6e22e">std</span>::process::id(),
+<span style="color:#ae81ff">11.</span>    },
+<span style="color:#ae81ff">12.</span>  );
+<span style="color:#ae81ff">13.</span>
+<span style="color:#ae81ff">14.</span>  ok_future(serialize_response(
+<span style="color:#ae81ff">15.</span>    base.cmd_id(),
+<span style="color:#ae81ff">16.</span>    builder,
+<span style="color:#ae81ff">17.</span>    msg::BaseArgs {
+<span style="color:#ae81ff">18.</span>      inner: Some(inner.as_union_value()),
+<span style="color:#ae81ff">19.</span>      inner_type: <span style="color:#a6e22e">msg</span>::Any::MyPidRes,
+<span style="color:#ae81ff">20.</span>      ..Default::default()
+<span style="color:#ae81ff">21.</span>    },
+<span style="color:#ae81ff">22.</span>  ))
+<span style="color:#ae81ff">23.</span>}
+</code></pre></div><p>The op function returns a <code>Box&lt;OpWithError&gt;</code> which is defined as:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">OpWithError</span> <span style="color:#f92672">=</span> dyn Future<span style="color:#f92672">&lt;</span>Item <span style="color:#f92672">=</span> Buf, Error <span style="color:#f92672">=</span> DenoError<span style="color:#f92672">&gt;</span> <span style="color:#f92672">+</span> Send;
+</code></pre></div><p>So it can be anything that implements the <code>Future</code> trait where it&rsquo;s associated <code>Item</code> is a <code>Buf</code> and <code>Error</code> is a <code>DenoError</code>. <code>Buf</code> is just a slice of bytes which will contain a flatbuffer:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Buf</span> <span style="color:#f92672">=</span> Box<span style="color:#f92672">&lt;</span>[<span style="color:#66d9ef">u8</span>]<span style="color:#f92672">&gt;</span>;
+</code></pre></div><p>Inside the op we write code quite similar to that which we wrote in TS. We build a <code>MyPidRes</code> message with a <code>pid</code> field which we get from the Rust stdlib function <code>std::process::id()</code>. Then we serialze the flatbuffer into a <code>Buf</code> and return an ok future. Note that this was all blocking.</p>
+<p>Next we&rsquo;ll implement an op which will actually take some time, so needs to wire up into Tokio a bit more and return a <code>Promise</code> on the TypeScript side.</p>
+<h2 id="adding-an-asynchronous-rust-feature-to-the-privileged-side">Adding an asynchronous Rust feature to the privileged side</h2>
+<p>This time we&rsquo;re going to write a function <code>resolve()</code> in TypeScript that will resolve a hostname for us to an IP address using DNS. The signature will be:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#a6e22e">async</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">resolve</span>(<span style="color:#a6e22e">hostname</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">string</span>)<span style="color:#f92672">:</span> Promise<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">string</span><span style="color:#f92672">&gt;</span>;
+</code></pre></div><p>First step is to implement the TS side. This looks very similar to the synchronous example from before. The only differences are that this time:</p>
+<ul>
+<li>We use <code>syncAsyc()</code> instead of <code>sendSync()</code></li>
+<li>We&rsquo;re returned a <code>Promise</code> over a message instead of the message itself</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">import</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">as</span> <span style="color:#a6e22e">flatbuffers</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./flatbuffers&#34;</span>;
+<span style="color:#66d9ef">import</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">as</span> <span style="color:#a6e22e">msg</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;gen/cli/msg_generated&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">sendAsync</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./dispatch&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">assert</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;./util&#34;</span>;
+
+
+<span style="color:#66d9ef">export</span> <span style="color:#a6e22e">async</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">resolve</span>(<span style="color:#a6e22e">hostname</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">string</span>)<span style="color:#f92672">:</span> Promise<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">string</span><span style="color:#f92672">&gt;</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">builder</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">flatbuffers</span>.<span style="color:#a6e22e">createBuilder</span>();
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">host</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">createString</span>(<span style="color:#a6e22e">hostname</span>);
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">inner</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Resolve</span>.<span style="color:#a6e22e">createResolve</span>(<span style="color:#a6e22e">builder</span>, <span style="color:#a6e22e">host</span>);
+
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">baseRes</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">sendAsync</span>(<span style="color:#a6e22e">builder</span>, <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Any</span>.<span style="color:#a6e22e">Resolve</span>, <span style="color:#a6e22e">inner</span>)<span style="color:#f92672">!</span>;
+  <span style="color:#a6e22e">assert</span>(<span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">Any</span>.<span style="color:#a6e22e">ResolveRes</span> <span style="color:#f92672">===</span> <span style="color:#a6e22e">baseRes</span>.<span style="color:#a6e22e">innerType</span>());
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">msg</span>.<span style="color:#a6e22e">ResolveRes</span>();
+  <span style="color:#a6e22e">assert</span>(<span style="color:#a6e22e">baseRes</span>.<span style="color:#a6e22e">inner</span>(<span style="color:#a6e22e">res</span>) <span style="color:#f92672">!==</span> <span style="color:#66d9ef">null</span>);
+
+  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">ip</span>()<span style="color:#f92672">!</span>;
+}
+</code></pre></div><p>On the Rust side, things aren&rsquo;t too different either. Because there&rsquo;s no asyncronous support for DNS in Tokio, we&rsquo;ve used <code>tokio_threadpool::blocking()</code>. This is a function that will take a blocking closure returning a <code>Future</code> and execute that closure in a thread pool returning a <code>Future</code> which resolves when the blocking closure returns. It&rsquo;s very useful for wrapping sync code.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">use</span> std::net::ToSocketAddrs;
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">op_resolve</span>(
+  _state: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">ThreadSafeState</span>,
+  base: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">msg</span>::Base<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;_</span><span style="color:#f92672">&gt;</span>,
+  _data: Option<span style="color:#f92672">&lt;</span>PinnedBuf<span style="color:#f92672">&gt;</span>,
+) -&gt; Box<span style="color:#f92672">&lt;</span>OpWithError<span style="color:#f92672">&gt;</span> {
+  <span style="color:#66d9ef">let</span> inner <span style="color:#f92672">=</span> base.inner_as_resolve().unwrap();
+  <span style="color:#66d9ef">let</span> cmd_id <span style="color:#f92672">=</span> base.cmd_id();
+  <span style="color:#66d9ef">let</span> hostname <span style="color:#f92672">=</span> String::from(inner.hostname().unwrap());
+
+  blocking(base.sync(), <span style="color:#66d9ef">move</span> <span style="color:#f92672">||</span> -&gt; <span style="color:#a6e22e">OpResult</span> {
+
+    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> addrs_iter <span style="color:#f92672">=</span> hostname.to_socket_addrs().unwrap();
+    <span style="color:#66d9ef">let</span> ip_addr <span style="color:#f92672">=</span> addrs_iter.find(<span style="color:#f92672">|</span>addr<span style="color:#f92672">|</span> addr.is_ipv4()).unwrap();
+    <span style="color:#66d9ef">let</span> ip <span style="color:#f92672">=</span> format<span style="color:#f92672">!</span>(<span style="color:#e6db74">&#34;{}&#34;</span>, ip_addr);
+
+    <span style="color:#66d9ef">let</span> builder <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> FlatBufferBuilder::new();
+    <span style="color:#66d9ef">let</span> ip_fbs_string <span style="color:#f92672">=</span> builder.create_string(<span style="color:#f92672">&amp;</span>ip);
+    <span style="color:#66d9ef">let</span> inner <span style="color:#f92672">=</span> msg::ResolveRes::create(
+      builder,
+      <span style="color:#f92672">&amp;</span>msg::ResolveResArgs { ip: Some(ip_fbs_string) },
+    );
+
+    Ok(serialize_response(
+      cmd_id,
+      builder,
+      msg::BaseArgs {
+        inner: Some(inner.as_union_value()),
+        inner_type: <span style="color:#a6e22e">msg</span>::Any::ResolveRes,
+        ..Default::default()
+      },
+    ))
+  })
+}
+</code></pre></div>
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

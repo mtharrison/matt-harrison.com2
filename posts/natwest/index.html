@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Natwest.js &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Natwest.js">
+<meta itemprop="description" content="A command line banking tool written in Node.js
+Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.
+Installation PhantomJS is required for this tool to work, Installation instructions are here: http://phantomjs.">
+<meta itemprop="datePublished" content="2013-10-17T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2013-10-17T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="244">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Natwest.js"/>
+<meta name="twitter:description" content="A command line banking tool written in Node.js
+Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.
+Installation PhantomJS is required for this tool to work, Installation instructions are here: http://phantomjs."/>
+
+
+<meta property="og:title" content="Natwest.js" />
+<meta property="og:description" content="A command line banking tool written in Node.js
+Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.
+Installation PhantomJS is required for this tool to work, Installation instructions are here: http://phantomjs." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/natwest/" />
+<meta property="article:published_time" content="2013-10-17T00:00:00+01:00" />
+<meta property="article:modified_time" content="2013-10-17T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Natwest.js</h1>
+
+  <div class="post-date">
+    <time datetime="2013-10-17T00:00:00&#43;0100">Oct 17, 2013</time> &middot; 2 min read
+  </div>
+
+  <p>A command line banking tool written in Node.js</p>
+<p><img src="/images/natwest.png" alt="Bilby Stampede"></p>
+<p>Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.</p>
+<h2 id="installation">Installation</h2>
+<p>PhantomJS is required for this tool to work, Installation instructions are here: <a href="http://phantomjs.org/download.html">http://phantomjs.org/download.html</a></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">git clone https://github.com/mtharrison/natwest.js
+cd natwest.js
+npm install
+chmod u+x natwest.js
+</code></pre></div><h2 id="usage">Usage</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./natwest.js             <span style="color:#75715e"># Uses the default CLI table renderer</span>
+                         <span style="color:#75715e"># OR</span>
+./natwest.js -r server   <span style="color:#75715e"># Serves you JSON via an Express server</span>
+</code></pre></div><h2 id="customisation-and-renderers">Customisation and Renderers</h2>
+<p>This tool is designed to allow alternative renderers to present your data in any way you wish. V0.1.0 comes bundled with 2 renderers: The default CLI table (see screenshot) and the JSON server renderer. More will be included in future. Feel free to submit pull requests for renderers (or anything for that matter!).</p>
+<h2 id="security">Security</h2>
+<p>Please use wisely, obviously anything that deals with personal financial information needs to used sensibly. The program will prompt you to save your credentials (defaults to no), if you say yes, it will store these unencrypted in a JSON file called <code>credentials.json</code>, I only recommend you do this for development and that&rsquo;s why it&rsquo;s there. No other data is stored.</p>
+<h2 id="version">Version</h2>
+<p>0.1.0</p>
+<h2 id="roadmap">Roadmap</h2>
+<p>-0.1.1 Cleaning, refactoring and separation into a public API
+-0.1.2 Addition of error reporting for when things go wrong</p>
+<h2 id="license">License</h2>
+<p>MIT</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

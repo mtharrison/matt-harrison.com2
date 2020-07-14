@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...) &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)">
+<meta itemprop="description" content="Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c&#43;&#43;. Luckily it&rsquo;s not too complicated to make use of c/c&#43;&#43; projects in Rust. In this short post I&rsquo;ll show you how.
+From a high-level perspective you can take any c/c&#43;&#43; project, for this example I&rsquo;m going to use Duktape, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s very simple to build it - it&rsquo;s just 1 .">
+<meta itemprop="datePublished" content="2018-08-22T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2018-08-22T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="1061">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)"/>
+<meta name="twitter:description" content="Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c&#43;&#43;. Luckily it&rsquo;s not too complicated to make use of c/c&#43;&#43; projects in Rust. In this short post I&rsquo;ll show you how.
+From a high-level perspective you can take any c/c&#43;&#43; project, for this example I&rsquo;m going to use Duktape, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s very simple to build it - it&rsquo;s just 1 ."/>
+
+
+<meta property="og:title" content="Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)" />
+<meta property="og:description" content="Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c&#43;&#43;. Luckily it&rsquo;s not too complicated to make use of c/c&#43;&#43; projects in Rust. In this short post I&rsquo;ll show you how.
+From a high-level perspective you can take any c/c&#43;&#43; project, for this example I&rsquo;m going to use Duktape, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s very simple to build it - it&rsquo;s just 1 ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/rust-sys-crate/" />
+<meta property="article:published_time" content="2018-08-22T00:00:00+01:00" />
+<meta property="article:modified_time" content="2018-08-22T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Building and using a sys-crate with Rust - let&#39;s make a node clone (well kind of...)</h1>
+
+  <div class="post-date">
+    <time datetime="2018-08-22T00:00:00&#43;0100">Aug 22, 2018</time> &middot; 5 min read
+  </div>
+
+  <p>Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c++. Luckily it&rsquo;s not too complicated to make use of c/c++ projects in Rust. In this short post I&rsquo;ll show you how.</p>
+<p>From a high-level perspective you can take any c/c++ project, for this example I&rsquo;m going to use <a href="https://duktape.org/">Duktape</a>, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s <em>very</em> simple to build it - it&rsquo;s just 1 <code>.c</code> file. Hopefully this will make the steps easy to understand and we won&rsquo;t get too bogged down in build system issues.</p>
+<p>The steps are:</p>
+<ol>
+<li>Create a *-sys create which has your native dependency included along with knowledge of how to build it and exposes a preferably safe API to consumers. We&rsquo;ll be making <code>duktape-sys</code> crate here.</li>
+<li>Make a crate that consumes the <code>-sys</code> crate and uses it to build something cool. Here we&rsquo;ll be building <code>duk</code> which is just a binary which you can pass a JavaScript file too and it will print out the last number on the stack</li>
+</ol>
+<h3 id="creating-duktape-sys-crate">Creating duktape-sys crate</h3>
+<p>First we&rsquo;ll create a new library crate using cargo:</p>
+<pre><code>$ cargo new --lib duktape2-sys
+</code></pre><p>We&rsquo;ll download and bundle duktape source code from <a href="https://duktape.org/">https://duktape.org/</a>. I&rsquo;ve added this to a <code>vendor</code> directory:</p>
+<pre><code>.
+├── Cargo.lock
+├── Cargo.toml
+├── build.rs
+├── src
+│   └── lib.rs
+├── target
+│   ├── ...
+└── vendor
+    └── duktape-2.3.0
+        └── ...
+</code></pre><p>We&rsquo;ll need some dependencies:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml"><span style="color:#960050;background-color:#1e0010">//</span> <span style="color:#a6e22e">cargo</span>.<span style="color:#a6e22e">toml</span>
+
+[<span style="color:#a6e22e">package</span>]
+<span style="color:#a6e22e">name</span> = <span style="color:#e6db74">&#34;duktape2-sys&#34;</span>
+<span style="color:#a6e22e">version</span> = <span style="color:#e6db74">&#34;0.1.0&#34;</span>
+<span style="color:#a6e22e">authors</span> = [<span style="color:#e6db74">&#34;Matt Harrison &lt;hi@matt-harrison.com&gt;&#34;</span>]
+
+[<span style="color:#a6e22e">dependencies</span>]
+<span style="color:#a6e22e">libc</span> = <span style="color:#e6db74">&#34;0.2.0&#34;</span>
+
+[<span style="color:#a6e22e">build</span><span style="color:#960050;background-color:#1e0010">-</span><span style="color:#a6e22e">dependencies</span>]
+<span style="color:#a6e22e">cc</span> = <span style="color:#e6db74">&#34;1.0&#34;</span>
+</code></pre></div><p>We&rsquo;ll use the libc crate here to use the <code>c_void</code> type, we&rsquo;ll pass this around in Rust as a opaque pointer to some memory allocated by C. We&rsquo;ll use the cc crate because it provides us with a crossplatform way to build libduktape from source. Speaking of building duktape, let&rsquo;s create a build.rs file:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// build.rs
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">crate</span> cc;
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+    cc::Build::new()
+        .file(<span style="color:#e6db74">&#34;vendor/duktape-2.3.0/src/duktape.c&#34;</span>)
+        .compile(<span style="color:#e6db74">&#34;duktape&#34;</span>);
+}
+</code></pre></div><p>What this magical looking script will do is: when building our crate it will compile  <code>vendor/duktape-2.3.0/src/duktape.c</code> into a static library called <code>libduktape.a</code> inside our <code>target</code> directory and also add a linker library search flag to the rust compiler so that it knows how to link the native library. That&rsquo;s all we need to handle building and linking with the native code!</p>
+<p>Let&rsquo;s go and implement a Rust API that we can use in other crates:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// Crates
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">crate</span> libc;
+
+<span style="color:#75715e">// Use statements
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">use</span> std::error::Error;
+<span style="color:#66d9ef">use</span> std::ffi::CString;
+<span style="color:#66d9ef">use</span> std::fmt;
+<span style="color:#66d9ef">use</span> std::os::raw::c_char;
+<span style="color:#66d9ef">use</span> std::ptr;
+
+<span style="color:#75715e">// Aliases
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">use</span> libc::c_void <span style="color:#66d9ef">as</span> void;
+
+<span style="color:#75715e">// Duktape constants
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">const</span> DUK_COMPILE_EVAL: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">3</span>;
+<span style="color:#66d9ef">const</span> DUK_COMPILE_SAFE: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">7</span>;
+<span style="color:#66d9ef">const</span> DUK_COMPILE_NOSOURCE: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">9</span>;
+<span style="color:#66d9ef">const</span> DUK_COMPILE_STRLEN: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">10</span>;
+<span style="color:#66d9ef">const</span> DUK_COMPILE_NOFILENAME: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">11</span>;
+
+<span style="color:#75715e">// Define the FFI with duktape
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> {
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_create_heap</span>(
+        arg1: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+        arg2: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+        arg3: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+        arg4: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+        arg5: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+    ) -&gt; <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void;
+
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_destroy_heap</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void);
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_eval_raw</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void, src: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> c_char, arg1: <span style="color:#66d9ef">u32</span>, arg2: <span style="color:#66d9ef">u32</span>) -&gt; <span style="color:#66d9ef">u32</span>;
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_get_int</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void, idx: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span>;
+}
+
+<span style="color:#75715e">// Create a DukHeap struct which just privately holds the pointer
+</span><span style="color:#75715e">// to the native duktape heap
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DukHeap</span> {
+    ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+}
+
+<span style="color:#66d9ef">impl</span> DukHeap {
+    <span style="color:#75715e">// Create a new default heap object
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">new</span>() -&gt; <span style="color:#a6e22e">DukHeap</span> {
+        <span style="color:#66d9ef">unsafe</span> {
+            <span style="color:#66d9ef">let</span> ctx <span style="color:#f92672">=</span> duk_create_heap(
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+                ptr::null(),
+            );
+
+            DukHeap { ctx }
+        }
+    }
+
+    <span style="color:#75715e">// Evaluates a JavaScript script within the current context
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Returns the i32 on top of the stack or an error
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">eval_script</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self, script: <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span>) -&gt; Result<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">i32</span>, Box<span style="color:#f92672">&lt;</span>Error<span style="color:#f92672">&gt;&gt;</span> {
+        <span style="color:#66d9ef">let</span> code <span style="color:#f92672">=</span> CString::new(script)<span style="color:#f92672">?</span>;
+
+        <span style="color:#66d9ef">let</span> flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+            <span style="color:#f92672">|</span> DUK_COMPILE_EVAL
+            <span style="color:#f92672">|</span> DUK_COMPILE_NOSOURCE
+            <span style="color:#f92672">|</span> DUK_COMPILE_STRLEN
+            <span style="color:#f92672">|</span> DUK_COMPILE_NOFILENAME
+            <span style="color:#f92672">|</span> DUK_COMPILE_SAFE;
+
+        <span style="color:#66d9ef">let</span> res <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { duk_eval_raw(self.ctx, code.as_ptr(), <span style="color:#ae81ff">0</span>, flags) };
+
+        <span style="color:#66d9ef">if</span> res <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+            <span style="color:#66d9ef">return</span> Err(Box::new(DukError::new(<span style="color:#e6db74">&#34;Eval failed&#34;</span>)));
+        }
+
+        <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { duk_get_int(self.ctx, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) };
+
+        Ok(result)
+    }
+}
+
+<span style="color:#66d9ef">impl</span> Drop <span style="color:#66d9ef">for</span> DukHeap {
+    <span style="color:#75715e">// When our DukHeap is dropped we also destroy the native heap
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">drop</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self) {
+        <span style="color:#66d9ef">unsafe</span> {
+            duk_destroy_heap(self.ctx);
+        }
+    }
+}
+
+<span style="color:#75715e">// A custom error type
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#[derive(Debug)]</span>
+<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DukError</span> {
+    details: String,
+}
+
+<span style="color:#66d9ef">impl</span> DukError {
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">new</span>(msg: <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span>) -&gt; <span style="color:#a6e22e">DukError</span> {
+        DukError {
+            details: <span style="color:#a6e22e">msg</span>.to_string(),
+        }
+    }
+}
+
+<span style="color:#66d9ef">impl</span> fmt::Display <span style="color:#66d9ef">for</span> DukError {
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">fmt</span>(<span style="color:#f92672">&amp;</span>self, f: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> fmt::Formatter) -&gt; <span style="color:#a6e22e">fmt</span>::Result {
+        write<span style="color:#f92672">!</span>(f, <span style="color:#e6db74">&#34;{}&#34;</span>, self.details)
+    }
+}
+
+<span style="color:#66d9ef">impl</span> Error <span style="color:#66d9ef">for</span> DukError {
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">description</span>(<span style="color:#f92672">&amp;</span>self) -&gt; <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span> {
+        <span style="color:#f92672">&amp;</span>self.details
+    }
+}
+
+<span style="color:#75715e">// A simple test
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#[cfg(test)]</span>
+<span style="color:#66d9ef">mod</span> tests {
+
+    <span style="color:#66d9ef">use</span> <span style="color:#66d9ef">super</span>::DukHeap;
+
+    <span style="color:#75715e">#[test]</span>
+    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">my_test</span>() {
+        <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> heap <span style="color:#f92672">=</span> DukHeap::new();
+        <span style="color:#66d9ef">let</span> script <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;12 * 65 / 3&#34;</span>;
+        <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> heap.eval_script(script);
+
+        assert_eq<span style="color:#f92672">!</span>(result.unwrap(), <span style="color:#ae81ff">260</span>);
+    }
+}
+</code></pre></div><p>Running <code>cargo test</code> tells us that things are working quite nicely!</p>
+<p>The next step is to use this sys-crate in some consumer crate.</p>
+<p>Let&rsquo;s create a new crate called <code>dukrs</code>:</p>
+<pre><code>$ cargo new --bin dukjs
+</code></pre><p>We&rsquo;ll add our <code>duktape2-sys</code> crate as a dependency using the relative path as we won&rsquo;t be publishing it to crates.io.</p>
+<pre><code>// cargo.toml
+
+[package]
+name = &quot;dukjs&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
+
+[dependencies]
+duktape2-sys = { path = &quot;../duktape2-sys&quot; }
+</code></pre><p>Let&rsquo;s write our <code>main.rs</code> to load a script passed as an argument to our binary and then execute it and print the result.</p>
+<pre><code>// main.rs
+
+extern crate duktape2_sys;
+
+use std::env;
+use std::fs::File;
+use std::io::Read;
+
+use duktape2_sys::DukHeap;
+
+fn main() {
+    let filename = env::args()
+        .nth(1)
+        .expect(&quot;Provide a script name to execute&quot;);
+
+    let mut file = File::open(filename).expect(&quot;Cannot read file&quot;);
+    let mut script = String::new();
+    file.read_to_string(&amp;mut script).expect(&quot;Can't read script&quot;);
+
+    let mut heap = DukHeap::new();
+
+    let result = heap.eval_script(&amp;script).expect(&quot;Couldn't evaluate script&quot;);
+
+    println!(&quot;Result was {}&quot;, result);
+}
+</code></pre><p>Pretty simple, right? Let&rsquo;s create a script to test this on, we&rsquo;ll write a simple script using js to calculate the 20th fibonacci number:</p>
+<pre><code>// fib.js
+
+function fibonacci(num) {
+  if (num == 0) return 0;
+  if (num == 1) return 1;
+
+  return fibonacci(num - 1) + fibonacci(num - 2);
+}
+
+fibonacci(20);
+</code></pre><p>Let&rsquo;s build our binary:</p>
+<pre><code>$ cargo build --release
+</code></pre><p>Now let&rsquo;s give it a spin to see if it all works:</p>
+<pre><code>➜  dukjs git:(master) ✗ ./target/release/dukjs fib.js
+Result was 6765
+</code></pre><p>That&rsquo;s pretty sweet. So to recap: we created a sys-crate that can compile a native C library and link with a safe Rust wrapper API. We build a simple crate to consume that sys-crate which creates a binary that knows how to evaulate JavaScript.</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

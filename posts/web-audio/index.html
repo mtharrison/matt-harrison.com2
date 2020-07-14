@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Perfect web audio on iOS devices with the Web Audio API &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Perfect web audio on iOS devices with the Web Audio API">
+<meta itemprop="description" content="TL;DR A lot of the restrictions imposed on the HTML5 audio element by iOS can be overcome by using the Web Audio API.
+ If you&rsquo;ve ever built a web based game that requires sound effects, you&rsquo;ve no doubt felt the frustration of getting what is trivial to implement on desktop browsers to work smoothly on iOS devices.
+Initally the obvious way to implement audio is to use the HTML5 &lt;audio&gt; element.">
+<meta itemprop="datePublished" content="2014-01-02T00:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2014-01-02T00:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="840">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Perfect web audio on iOS devices with the Web Audio API"/>
+<meta name="twitter:description" content="TL;DR A lot of the restrictions imposed on the HTML5 audio element by iOS can be overcome by using the Web Audio API.
+ If you&rsquo;ve ever built a web based game that requires sound effects, you&rsquo;ve no doubt felt the frustration of getting what is trivial to implement on desktop browsers to work smoothly on iOS devices.
+Initally the obvious way to implement audio is to use the HTML5 &lt;audio&gt; element."/>
+
+
+<meta property="og:title" content="Perfect web audio on iOS devices with the Web Audio API" />
+<meta property="og:description" content="TL;DR A lot of the restrictions imposed on the HTML5 audio element by iOS can be overcome by using the Web Audio API.
+ If you&rsquo;ve ever built a web based game that requires sound effects, you&rsquo;ve no doubt felt the frustration of getting what is trivial to implement on desktop browsers to work smoothly on iOS devices.
+Initally the obvious way to implement audio is to use the HTML5 &lt;audio&gt; element." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/web-audio/" />
+<meta property="article:published_time" content="2014-01-02T00:00:00+01:00" />
+<meta property="article:modified_time" content="2014-01-02T00:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software developer and author based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://zety.com/mycv/mharrison">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Perfect web audio on iOS devices with the Web Audio API</h1>
+
+  <div class="post-date">
+    <time datetime="2014-01-02T00:00:00&#43;0100">Jan 2, 2014</time> &middot; 4 min read
+  </div>
+
+  <p>TL;DR A lot of the restrictions imposed on the HTML5 audio element by iOS can be overcome by using the <!-- raw HTML omitted -->Web Audio API<!-- raw HTML omitted -->.</p>
+<hr>
+<p>If you&rsquo;ve ever built a web based game that requires sound effects, you&rsquo;ve no doubt felt the frustration of getting what is trivial to implement on desktop browsers to work smoothly on iOS devices.</p>
+<p>Initally the obvious way to implement audio is to use the HTML5 &lt;audio&gt; element. The official browser support for the element is widespread enough to coax you into a false sense of security (<a href="http://caniuse.com/audio)">http://caniuse.com/audio)</a>.</p>
+<p>You could go ahead and put all your sound effects in separate &lt;audio&gt; elements like so:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>Then say you have a gun trigger with a class of <code>blasterTrigger</code>:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>You could then use the Javascript API to control the playing of the blast sound when the trigger is clicked like so:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>If you test the above code in most desktop browers, you&rsquo;ll find it works perfectly (given you provide a suitable audio format for that browser). If you take out your iPad though and give it a go, you&rsquo;ll find the background track doesn&rsquo;t play at all.</p>
+<p>Also, if you try to fire any of the other sounds simultaneously, you&rsquo;ll probably only hear one. Asyncronous sounds (i.e. ones that are fired in code and not in the call stack of a UI interaction like a click or touch event) won&rsquo;t play at all.</p>
+<p>The problem is that even though Safari on iOS <em>does</em>  support the audio element, it imposes some restrictions of its own on playback. These restrictions are driven by a desire to save the user bandwidth and memory. Some have suggested Apple have done this because they want to keep media rich applications to be native and sold through the App Store.</p>
+<p>The iOS restrictions basically sum up like this:</p>
+<ul>
+<li>
+<p>Only 1 channel of audio can play at a time so no layering or overlapping of sounds. This really restricts you if you want to have background audio in your game</p>
+</li>
+<li>
+<p>iOS will ignore the autoplay attribute on your elements</p>
+</li>
+<li>
+<p>You can&rsquo;t load your audio tracks asyncronously, they must be loaded via a UI interaction like a click event.</p>
+</li>
+</ul>
+<p>####Possible solutions</p>
+<p>There are a few method to attempt to overcome the limitations of the &lt;audio&gt; element on iOS.</p>
+<p><strong>Queueing</strong></p>
+<p>One approach is to have a single audio channel and queue the tracks you wish to play on a single queue to get played sequentially.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>Another approach is to use audiosprites (think CSS sprites but audio files). This is where you combine all your audio files into a single track separated by silence. To play a particular sound, you just seek to that time and start playing.</p>
+<p>There are various tools to help with the creation and playing of these. There&rsquo;s an NPM package <a href="https://github.com/tonistiigi/audiosprite">https://github.com/tonistiigi/audiosprite</a> which is a wrapper around <em>ffmpeg</em> that will create your sprites in many formats and output a handy JSON file with the timing of the various tracks encoded within. I originally used this approach, letting a <!-- raw HTML omitted -->Grunt<!-- raw HTML omitted --> task manage the creation of the sprites from my sources files as part of the build process. There was also a library from <!-- raw HTML omitted -->Zynga<!-- raw HTML omitted --> called Jukebox that could take these JSON files and expose a convenient API for playing tracks (that implemented a similar run loop and queueing approach as above) but as of Jan 2014 it seems to have been taken down from Github.</p>
+<p>Although this approach certainly is an improvement and overcome several of the issues, it&rsquo;s still not perfect. You can still only play one track and a time and if you queue tracks in quick succession, no matter how good your queue implementation, iOS will sometimes just discard the operation.</p>
+<p>Luckily, there is another solution…enter the Web Audio API.</p>
+<!-- raw HTML omitted -->
+<p>The web audio API is a new standard by the w3c that has started appearing in browsers. It’s supported in the most recent versions of Firefox, Chrome and safari (including iOS6/7). Check <a href="http://caniuse.com/audio-api">http://caniuse.com/audio-api</a> for up to date support information.</p>
+<p>It is designed for sophisticated audio sythesis and manipulation and its architecture is modelled around professional sound engineering techniques.</p>
+<p>It can however be used to play a basic audio buffer, including looping and stopping the track. It doesn’t (currently) suffer the same limitations as the HTML audio element and it’s Javascript API making it a viable candidate for web based games with sound effects. Using it on iOS sidesteps the single-channel restriction.</p>
+<p>The underlying API is optimised at the C++/Assesmbly level so it’s very fast and has a low consumption of memory.</p>
+<p>Here&rsquo;s some sample code that I wrote that uses the Web Audio API and acts as a shim for iOS devices to take place of the library (buzz.js) we&rsquo;re using for desktop browsers.</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>The <code>WebAudioAPISound</code> class can then be used like so:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>You should find that your audio (including background track) all now works seemlessly on iOS devices.</p>
+<p>I&rsquo;ve found the following sources useful in writing this:</p>
+<ol>
+<li><a href="http://www.html5rocks.com/en/tutorials/webaudio/games/">http://www.html5rocks.com/en/tutorials/webaudio/games/</a></li>
+<li><a href="http://www.html5rocks.com/en/tutorials/webaudio/intro/">http://www.html5rocks.com/en/tutorials/webaudio/intro/</a></li>
+</ol>
+<p>Please feel free to leave comments if you like this or think something could be improved.</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2020
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>
