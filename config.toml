@@ -1,6 +1,35 @@
 baseURL = "https://matt-harrison.com/"
 languageCode = "en-us"
 title = "Matt Harrison"
-theme = "hugo-book"
+theme = "soho"
 publishDir = "docs"
 disableKinds = ['taxonomy', 'taxonomyTerm']
+enableEmoji = true
+
+[params]
+author = "Matt Harrison"
+profilePicture = "images/profile.jpg"
+description = "Software developer and author based in the UK"
+
+copyright = "Matt Harrison"
+license = "CC BY-SA 4.0"
+licenseURL = "https://creativecommons.org/licenses/by-sa/4.0"
+
+themeColor = "#141b19"
+
+customCss = ["css/blog.css"]
+customJs = ["js/blog.js"]
+
+[menu]
+
+    [[menu.main]]
+    name = "GitHub"
+    weight = 100
+    identifier = "github"
+    url = "https://github.com/mtharrison"
+
+    [[menu.main]]
+    name = "Resume"
+    weight = 100
+    identifier = "resume"
+    url = "https://zety.com/mycv/mharrison"
