@@ -1,0 +1,36 @@
+name: build
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build Hugo Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Hugo
+        env:
+          HUGO_VERSION: 0.74.1
+        run: |
+          mkdir ~/hugo
+          cd ~/hugo
+          curl -L "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz" --output hugo.tar.gz
+          tar -xvzf hugo.tar.gz
+          mv hugo /usr/local/bin
+
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Hugo Build
+        run: hugo
+
+      - name: Commit to master
+        run: |
+          git remote add github "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          git pull github ${GITHUB_REF} --ff-only
+
+          git add -A .
+
+          git commit -m "[CI] Build Hugo site"
+          git push github HEAD:${GITHUB_REF}
+
