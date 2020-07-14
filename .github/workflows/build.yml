@@ -37,8 +37,7 @@ jobs:
       - name: Copy files
         run: mv main/public/* docs/
   
-
-      - name: Commit to docs branch
+      - name: Commit changes
         run: |
           cd docs
           
