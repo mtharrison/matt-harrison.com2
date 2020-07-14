@@ -17,7 +17,7 @@
 
 
 
-<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
 
 
 <link rel="icon" href="/favicon.png" type="image/x-icon">
@@ -108,13 +108,22 @@ https://github.com/alex-shpak/hugo-book
     <strong>July 28, 2014</strong>
   </h5>
 </header>
-<article class="markdown"><p><strong>Disclaimer:</strong> This was a weird idea I had one day and put this together the same evening. I&rsquo;ve not tested it cross-browser or in a production environment. I&rsquo;ve not benchmarked this either vs actually downloading all the images. It&rsquo;s kind of a &lsquo;what if&rsquo; project at the moment. If you think it&rsquo;s really dumb or cool, I&rsquo;d be really interested to hear your thoughts.</p>
-<hr>
+<article class="markdown">
+
+<p><strong>Disclaimer:</strong> This was a weird idea I had one day and put this together the same evening. I&rsquo;ve not tested it cross-browser or in a production environment. I&rsquo;ve not benchmarked this either vs actually downloading all the images. It&rsquo;s kind of a &lsquo;what if&rsquo; project at the moment. If you think it&rsquo;s really dumb or cool, I&rsquo;d be really interested to hear your thoughts.</p>
+
+<hr />
+
 <p>Generally, whenever a browser loads a new image, it will make a new HTTP request to the server. This doesn&rsquo;t always mean establishing a new TCP connection, because browsers will leave TCP connections open for reuse if they&rsquo;re to the same hostname. However, these connections are managed by a &lsquo;connection pool&rsquo;. Most browsers do not do <a href="http://en.wikipedia.org/wiki/HTTP_pipelining">HTTP pipelining</a>, which means the connection waits for a response before sending a new request. This means your requests are queued. If you need to load 300 images from the same hostname this could have serious implications for your user experience.</p>
+
 <h2 id="css-sprites">CSS sprites</h2>
+
 <p>A strategy that people frequently use to mitigate this is to <em>visually</em> combine multiple images into a single image, which can then be served with a single HTTP request. This requires someone to lay out the images onto a larger canvas, at known pixel coordinates. The image is then positioned using CSS in the browser to reveal the individual images.</p>
-<p><img src="https://mattharrison.s3.amazonaws.com/july2014/sprite.png" alt="CSS Sprite"></p>
+
+<p><img src="https://mattharrison.s3.amazonaws.com/july2014/sprite.png" alt="CSS Sprite" /></p>
+
 <p>The drawbacks of this method are fairly obvious:</p>
+
 <ul>
 <li>Image metadata is opaque: Requires the consumer of the images to know at which coordinates to find the individual images, there&rsquo;s no way to serve these to some consumer you may not know, unless you also provide the metadata separately</li>
 <li>You need to make another image file for every combination of images you wish to serve</li>
@@ -122,18 +131,27 @@ https://github.com/alex-shpak/hugo-book
 <li>All images within a sprite must be of the same content type e.g. <code>image/png</code>, <code>image/jpg</code> etc</li>
 <li>Creating the images can be cumbersome and open to human error.</li>
 </ul>
+
 <h2 id="using-data-uris">Using data URIs</h2>
+
 <p>Browsers have moved on quite a lot in the time the CSS sprite hack was established. There are 2 new features that open up other possibilities.</p>
+
 <h3 id="data-uris">Data URIs</h3>
+
 <p><a href="http://en.wikipedia.org/wiki/Data_URI_scheme">Data URIs</a> are a way to embed inline a resource as a base64 encoded string of the actual bytes that make up that resource. A data URI has the following form:</p>
+
 <pre><code>data:[&lt;MIME-type&gt;][;charset=&lt;encoding&gt;][;base64],&lt;data&gt;
 </code></pre>
+
 <p>Data URIs can take the place of a URL in the <code>src</code> attribute of an image. Here&rsquo;s an example which is a small red dot:</p>
+
 <pre><code>&lt;img src=&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
 AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
 9TXL0Y4OHwAAAABJRU5ErkJggg==&quot; alt=&quot;Red dot&quot; /&gt;
 </code></pre>
+
 <p>Data URIs can also be used in CSS:</p>
+
 <pre><code>ul.checklist li.complete {
     padding-left: 20px;
     background: white url('data:image/png;base64,iVBORw0KGgoAA
@@ -142,29 +160,46 @@ EQVR4nGP4/5/h/1+G/58ZDrAz3D/McH8yw83NDDeNGe4Ug9C9zwz3gVLMDA/A6
 P9/AFGGFyjOXZtQAAAAAElFTkSuQmCC') no-repeat scroll left top;
 }
 </code></pre>
+
 <p>This means if performance is critical to you, you can transfer a web page along with all images in a single HTTP request by including them inline in the HTML. Or with an extra request you can include them in the CSS.</p>
+
 <p><em>Examples from <a href="http://en.wikipedia.org/wiki/Data_URI_scheme">Wikipedia</a></em></p>
+
 <p><strong>Disadvantages to using data URIs</strong></p>
+
 <p>There are however some disadvantages to the above:</p>
+
 <ul>
 <li>If the HTML/CSS is modified and invalidated in the browser cache, all your images need to be downloaded again even if they themselves haven&rsquo;t been modified</li>
 <li>Encoding as Base64 takes up more space than the original binary data, meaning your image data is (~33%) heavier on the wire than if you just sent the image as binary data</li>
 </ul>
+
 <h3 id="arraybuffer">ArrayBuffer</h3>
+
 <p>Javascript is traditionally unsuited to dealing with binary data, but modern browsers have <code>ArrayBuffer</code> which is a data type that points to a fixed size raw allocation of bytes in memory. The <code>ArrayBuffer</code> type can&rsquo;t be manipulated directly in Javascript, but you can create a &lsquo;view&rsquo; on a <code>ArrayBuffer</code> with Typed Arrays which can then be used to read/write data to the <code>arraybuffer</code>.</p>
+
 <p>Typed arrays are like normal javascript arrays, except every element in the array is a fixed capacity number and they also have a <code>buffer</code> property that points to the underlying <code>arraybuffer</code>. The array elements will overflow, so if you have a <code>Uint8Array</code> with an element set to <code>255</code> and you add <code>1</code> to that element, it (and the underlying buffer) will overflow to <code>0</code>.</p>
+
 <p>In the example below, an <code>ArrayBuffer</code> is instantiated with 2 bytes of memory. All the bits are set to 0 by default.</p>
+
 <p>When creating a <code>Uint8Array</code> from this buffer, we get an array, whose <code>buffer</code> property points at our original buffer and contains the elements <code>[0,0]</code>.</p>
-<p><img src="https://mattharrison.s3.amazonaws.com/july2014/array-buffer.png" alt="Typed arrays"></p>
+
+<p><img src="https://mattharrison.s3.amazonaws.com/july2014/array-buffer.png" alt="Typed arrays" /></p>
+
 <p>The <code>XMLHttpRequest</code> object in Javascript has a <code>responseType</code> property. This can be set to <code>arraybuffer</code> and will bypass any interpretation of the received data, instead just passing an <code>arraybuffer</code> object directly to the <code>onload</code> callback.</p>
+
 <h2 id="a-new-approach-to-sprites">A new approach to sprites</h2>
+
 <p>The disadvantages of CSS Sprites and embedding images with data URIs inside HTML and CSS can be overcome by:</p>
+
 <ol>
 <li>Serving the images separately to any HTML/CSS</li>
 <li>Serving binary data rather than base64 encoded data</li>
 <li>Serving the combined resource dynamically based on input parameters</li>
 </ol>
+
 <h3 id="server-side">Server side</h3>
+
 <ul>
 <li>Create a webservice that receives a request for a set of images e.g. <a href="http://service.com/images?img1.jpg&amp;img2.jpg">http://service.com/images?img1.jpg&amp;img2.jpg</a></li>
 <li>Have the server sequentially read the raw bytes from each image file into a buffer</li>
@@ -173,35 +208,40 @@ P9/AFGGFyjOXZtQAAAAAElFTkSuQmCC') no-repeat scroll left top;
 <li>Respond to a request with content-type <code>application/octet-stream</code> and the entire buffer as the response body</li>
 <li>Also include a header <code>X-Metadata-Length</code> which tells the client how long the metadata header is in bytes</li>
 </ul>
-<p><img src="https://mattharrison.s3.amazonaws.com/july2014/server-side.png" alt="Server side"></p>
+
+<p><img src="https://mattharrison.s3.amazonaws.com/july2014/server-side.png" alt="Server side" /></p>
+
 <h3 id="client-side">Client side</h3>
+
 <ul>
-<li>
-<p>Request the data from the given URL, and specify the <code>xhr.responseType</code> as <code>arraybuffer</code></p>
-<pre><code>  var request = new XMLHttpRequest();
-  request.responseType = 'arraybuffer';
-  request.open('GET', 'http://service.com/images?img1.jpg&amp;img2.jpg', true);
-</code></pre>
-</li>
-<li>
-<p>According to the value of the <code>X-Metadata-Offset</code> take a <code>slice()</code> from the buffer at the corresponding offset</p>
-</li>
-<li>
-<p>Interpret the metadata chunk as a UTF-8 string and then parse as JSON.</p>
-</li>
-<li>
-<p>Use the <code>slice()</code> method on the rest of the arraybuffer to create subarrays corresponding to each image</p>
-</li>
+<li><p>Request the data from the given URL, and specify the <code>xhr.responseType</code> as <code>arraybuffer</code></p>
+
+<pre><code>var request = new XMLHttpRequest();
+request.responseType = 'arraybuffer';
+request.open('GET', 'http://service.com/images?img1.jpg&amp;img2.jpg', true);
+</code></pre></li>
+
+<li><p>According to the value of the <code>X-Metadata-Offset</code> take a <code>slice()</code> from the buffer at the corresponding offset</p></li>
+
+<li><p>Interpret the metadata chunk as a UTF-8 string and then parse as JSON.</p></li>
+
+<li><p>Use the <code>slice()</code> method on the rest of the arraybuffer to create subarrays corresponding to each image</p></li>
+
+<li><p>Convert the array buffers to base64 strings</p></li>
+
+<li><p>Create the <code>Image</code> DOM elements and set their Data URIs</p></li>
 </ul>
-<ol start="7">
-<li>Convert the array buffers to base64 strings</li>
-<li>Create the <code>Image</code> DOM elements and set their Data URIs</li>
-</ol>
+
 <h2 id="example-implementations">Example Implementations</h2>
+
 <h4 id="client-side-1">Client side</h4>
+
 <p><a href="http://github.com/mtharrison/bsprite-client">github.com/mtharrison/bsprite-client</a> - A simple browser module for requesting bsprites from a compliant server.</p>
+
 <h4 id="server-side-1">Server side</h4>
+
 <p><a href="http://github.com/mtharrison/bsprite-go">github.com/mtharrison/bsprite-go</a> - A go package for creating and serving bsprites using <code>net/http</code>.</p>
+
 <p>Node module coming soon too!</p>
 </article>
 

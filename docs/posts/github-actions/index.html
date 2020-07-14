@@ -17,7 +17,7 @@
 
 
 
-<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
 
 
 <link rel="icon" href="/favicon.png" type="image/x-icon">
@@ -108,137 +108,198 @@ https://github.com/alex-shpak/hugo-book
     <strong>July 5, 2020</strong>
   </h5>
 </header>
-<article class="markdown"><p><img src="https://cldup.com/oeFfVNoznL.png" alt="actions"></p>
+<article class="markdown">
+
+<p><img src="https://cldup.com/oeFfVNoznL.png" alt="actions" /></p>
+
 <p>I want to share with you my first experience working with GitHub Actions. They&rsquo;re really neat and definitely worth your time if you&rsquo;re a fan of automation.</p>
+
 <h2 id="background">Background</h2>
+
 <p>This weekend I was working on a small personal project: a <a href="https://github.com/mtharrison/github-pr-comment-resource">GitHub PR Comment resource for Concourse CI</a>. That isn&rsquo;t what this post is about really but first a little context.</p>
+
 <p>The project I was building is a Go project. When built, it consists of 2 built binaries <code>check</code> and <code>in</code>. These are part of the standard interface for any Concourse resource. A resource should just be a Docker image where those 2 binaries exist in a specific directory. So unsurprisingly my project contains a <code>Dockerfile</code> to build said image.</p>
+
 <p>I&rsquo;ll be honest and admit that I only really &ldquo;got&rdquo; and starting appreciating CI and build automation when I started working at my current gig. Probably because before that I was either writing personal projects or pretty much working within a non-technical team where I was the only one regularly writing code and so it made sense to run tests, produce builds and run deployments from my own machine. I was lucky enough not to run into the sort of issues that CI and centralised build systems solve.</p>
+
 <p>After working on a largish team for several years now, I can&rsquo;t imagine not having all the automated goodness that comes along with a well configured CI system. I&rsquo;m talking about:</p>
+
 <ul>
 <li>Automated build/test checks on PR/commit</li>
 <li>Automated release of merge to master: docker images/npm packages build automatically</li>
 </ul>
+
 <p>I can&rsquo;t bear the idea of having to run <code>docker build ...</code> on my own laptop anymore even for personal projects after having these tools at work. I want to focus on the code and let the machines do the grunt work for me.</p>
+
 <p>A few years back I would have turned to TravisCI for this and that was my natural instinct here. However as I&rsquo;m not that experienced with Go I thought I&rsquo;d see what the Go community was doing. I saw the expected mix of CircleCI/Travis/Gitlab being used. But then I saw a few projects that were making use of GitHub actions.</p>
+
 <p>I was aware of GitHub actions, I&rsquo;d read the announcement via Hacker News and heard some mutterings at work but I&rsquo;d filed it to the mental folder of things I should look at one undetermined day.</p>
+
 <p>I thought perhaps this is a good time to get my feet wet as I only have fairly simple needs for now:</p>
+
 <ol>
 <li>Test code on every PR against <code>master</code> and every push to <code>master</code></li>
 <li>When a new tag is pushed, test and then build and push the Docker image to docker hub</li>
 </ol>
+
 <p>I&rsquo;m a fan of Semantic Release, where even the tag step is redundant. Semantic Release will bump semver tags based on commit messages. However for now I&rsquo;m happy with just tagging and pushing tags as I choose, provided the rest is all automated for me.</p>
+
 <h2 id="creating-a-github-action">Creating a GitHub Action</h2>
+
 <p>You add a new <em>workflow</em> to your repository by creating a <code>yml</code> file under <code>.github/workflows</code>. You can think of a <em>workflow</em> like a pipeline. It&rsquo;s a set of steps that run on response to some <em>event</em> like a push to a branch, a new PR or many others.</p>
+
 <p>There&rsquo;s a <a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows">ton of events you can trigger on</a>, which is probably going to be more exhaustive than anything you&rsquo;ll find in another CI system, being that Actions are a GitHub feature.</p>
+
 <p>Your workflow runs in a <em>runner</em>. Think of this just like a linux container that is hosted by Github. The images have a <a href="https://github.com/actions/virtual-environments/blob/master/images/linux/Ubuntu2004-README.md">lot of common software</a> installed that you might want to use (like <code>npm</code>, <code>git</code> etc).</p>
+
 <p>Each step in the <em>workflow</em> can either run a shell command, or can make use of an <em>app</em>. Apps are published by the community on <a href="https://docs.github.com/en/actions/getting-started-with-github-actions/using-actions-from-github-marketplace">Github Marketplace</a>, including some official apps and are prepackaged workflow behaviours.</p>
+
 <h3 id="a-workflow-to-test-master-branch-and-prs">A workflow to test master branch and PRs</h3>
+
 <p>I want to make sure my master branch is always passing tests so I can display a nice green badge on the README, so contributors and users know that my project is in a good state.</p>
+
 <p>This was really simple to set up, check out the annotated workflow yaml:</p>
+
 <p><a href="https://github.com/mtharrison/github-pr-comment-resource/blob/master/.github/workflows/master.yml"><em>/.github/workflows/master.yml</em></a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">name</span>: master                     <span style="color:#75715e"># name of this workflow</span>
 
-<span style="color:#66d9ef">on</span>:
-  <span style="color:#66d9ef">push</span>:
-    <span style="color:#66d9ef">branches</span>: [master]           <span style="color:#75715e"># only trigger on pushes to master</span>
+<pre><code class="language-yaml">name: master                     # name of this workflow
 
-<span style="color:#66d9ef">jobs</span>:
-  <span style="color:#66d9ef">test</span>:
-    <span style="color:#66d9ef">name</span>: test
-    <span style="color:#66d9ef">runs-on</span>: ubuntu-latest
-    <span style="color:#66d9ef">steps</span>:
-    - <span style="color:#66d9ef">name</span>: Set up Go <span style="color:#ae81ff">1</span>.*
-      <span style="color:#66d9ef">uses</span>: actions/setup-go@v2
-      <span style="color:#66d9ef">with</span>:
-        <span style="color:#66d9ef">go-version</span>: ^<span style="color:#ae81ff">1.14</span>
+on:
+  push:
+    branches: [master]           # only trigger on pushes to master
 
-    - <span style="color:#66d9ef">name</span>: Check out code
-      <span style="color:#66d9ef">uses</span>: actions/checkout@v2
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.*
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.14
 
-    - <span style="color:#66d9ef">name</span>: Test code
-      <span style="color:#66d9ef">run</span>: go test -v ./...
-</code></pre></div><p>This workflow sets up my desired version of Go, checks out my code and then runs to the <code>go test</code> tool. Once this is committed to my repo any future matching events will trigger the Action. Providing feedback in all the usual places on Github.</p>
-<p><img src="https://cldup.com/EvWOhUxeIQ.png" alt="commit status"></p>
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Test code
+      run: go test -v ./...
+</code></pre>
+
+<p>This workflow sets up my desired version of Go, checks out my code and then runs to the <code>go test</code> tool. Once this is committed to my repo any future matching events will trigger the Action. Providing feedback in all the usual places on Github.</p>
+
+<p><img src="https://cldup.com/EvWOhUxeIQ.png" alt="commit status" /></p>
+
 <p>You get the full workflow output in the GitHub UI similar to Travis. It&rsquo;s nice not having a separate place to go to check that out.</p>
-<p><img src="https://cldup.com/qSicJvI5A4.png" alt="workflow output"></p>
+
+<p><img src="https://cldup.com/qSicJvI5A4.png" alt="workflow output" /></p>
+
 <p>You can easily grab a badge image to display in your README from the workflows screen.</p>
-<p><img src="https://cldup.com/c1Fn-7dnFN.png" alt="badge"></p>
+
+<p><img src="https://cldup.com/c1Fn-7dnFN.png" alt="badge" /></p>
+
 <p>I also added another <a href="https://github.com/mtharrison/github-pr-comment-resource/blob/master/.github/workflows/pr.yml">workflow for PRs</a> which is basically an exact duplication of the above with the <code>on</code> section only slightly different:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">on</span>:
-  <span style="color:#66d9ef">pull_request</span>:
-    <span style="color:#66d9ef">branches</span>: [master]
-</code></pre></div><p>I could have used both triggers in the same workflow but I like having a separate place to view PR builds. I&rsquo;m not sure if there&rsquo;s a way to share steps between workflows but for now this but of duplication doesn&rsquo;t trouble me too much.</p>
+
+<pre><code class="language-yaml">on:
+  pull_request:
+    branches: [master]
+</code></pre>
+
+<p>I could have used both triggers in the same workflow but I like having a separate place to view PR builds. I&rsquo;m not sure if there&rsquo;s a way to share steps between workflows but for now this but of duplication doesn&rsquo;t trouble me too much.</p>
+
 <h2 id="a-workflow-to-release-docker-image">A workflow to release Docker image</h2>
+
 <p>The other requirement I had is that I want a new tag to result in a Docker image to be built and pushed to the Docker registry and for the latest version to be displayed someone on the repo home page so anybody viewing knows which tag to use in their Concourse pipelines.</p>
+
 <p>This was a bit more work than the master workflow but not by too much. I used an extra step to set some variables so they can be reused in other steps: namely the image name and the actual tag being released.</p>
+
 <p>There&rsquo;s a funky way to set these variables by echo&rsquo;ing a string that will be recognised by the runner:</p>
+
 <pre><code>echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/})
-</code></pre><p>It does feel a bit awkward but seems to work pretty well. The Docker cli is available within the Runner so I was able to just login to Docker hub using <code>docker login</code> and passing my username and password using credentials which are set inside your repository settings Secrets.</p>
-<p><img src="https://cldup.com/-9ZSIo-KUu.png" alt="repo secrets"></p>
+</code></pre>
+
+<p>It does feel a bit awkward but seems to work pretty well. The Docker cli is available within the Runner so I was able to just login to Docker hub using <code>docker login</code> and passing my username and password using credentials which are set inside your repository settings Secrets.</p>
+
+<p><img src="https://cldup.com/-9ZSIo-KUu.png" alt="repo secrets" /></p>
+
 <p>Also I could just use <code>docker push</code> to push the image. Here&rsquo;s the entire workflow definition:</p>
+
 <p><a href="https://github.com/mtharrison/github-pr-comment-resource/blob/master/.github/workflows/release.yml"><em>/.github/workflows/release.yml</em></a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">name</span>: release
 
-<span style="color:#66d9ef">on</span>:
-  <span style="color:#66d9ef">push</span>:
-    <span style="color:#66d9ef">tags</span>:
-    - <span style="color:#e6db74">&#39;*&#39;</span>
+<pre><code class="language-yaml">name: release
 
-<span style="color:#66d9ef">jobs</span>:
-  <span style="color:#66d9ef">release</span>:
-    <span style="color:#66d9ef">name</span>: release
-    <span style="color:#66d9ef">runs-on</span>: ubuntu-latest
-    <span style="color:#66d9ef">steps</span>:
-    - <span style="color:#66d9ef">name</span>: Set up Go <span style="color:#ae81ff">1.</span>x
-      <span style="color:#66d9ef">uses</span>: actions/setup-go@v2
-      <span style="color:#66d9ef">with</span>:
-        <span style="color:#66d9ef">go-version</span>: ^<span style="color:#ae81ff">1.14</span>
-      <span style="color:#66d9ef">id</span>: go
+on:
+  push:
+    tags:
+    - '*'
 
-    - <span style="color:#66d9ef">name</span>: Check out code
-      <span style="color:#66d9ef">uses</span>: actions/checkout@v2
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.14
+      id: go
 
-    - <span style="color:#66d9ef">name</span>: Test code
-      <span style="color:#66d9ef">run</span>: go test -v ./...
+    - name: Check out code
+      uses: actions/checkout@v2
 
-    - <span style="color:#66d9ef">name</span>: Set some variables
-      <span style="color:#66d9ef">id</span>: vars
-      <span style="color:#66d9ef">run</span>: <span style="color:#e6db74">|
-</span><span style="color:#e6db74">        echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/})</span>
+    - name: Test code
+      run: go test -v ./...
+
+    - name: Set some variables
+      id: vars
+      run: |
+        echo ::set-output name=tag::$(echo ${GITHUB_REF#refs/*/})
         echo ::set-output name=image::mtharrison/github-pr-comment-resource
 
-    - <span style="color:#66d9ef">name</span>: Login to DockerHub
-      <span style="color:#66d9ef">run</span>: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+    - name: Login to DockerHub
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-    - <span style="color:#66d9ef">name</span>: Build the tagged Docker image
-      <span style="color:#66d9ef">run</span>: docker build . -t ${{steps.vars.outputs.image}}:${{steps.vars.outputs.tag}}
+    - name: Build the tagged Docker image
+      run: docker build . -t ${{steps.vars.outputs.image}}:${{steps.vars.outputs.tag}}
 
-    - <span style="color:#66d9ef">name</span>: Push the tagged Docker image
-      <span style="color:#66d9ef">run</span>: docker push ${{steps.vars.outputs.image}}:${{steps.vars.outputs.tag}}
+    - name: Push the tagged Docker image
+      run: docker push ${{steps.vars.outputs.image}}:${{steps.vars.outputs.tag}}
 
-    - <span style="color:#66d9ef">name</span>: Create Release
-      <span style="color:#66d9ef">id</span>: create_release
-      <span style="color:#66d9ef">uses</span>: actions/create-release@v1
-      <span style="color:#66d9ef">env</span>:
-        <span style="color:#66d9ef">GITHUB_TOKEN</span>: ${{ secrets.GITHUB_TOKEN }}
-      <span style="color:#66d9ef">with</span>:
-        <span style="color:#66d9ef">tag_name</span>: ${{ github.ref }}
-        <span style="color:#66d9ef">release_name</span>: Release ${{ github.ref }}
-        <span style="color:#66d9ef">draft</span>: <span style="color:#66d9ef">false</span>
-        <span style="color:#66d9ef">prerelease</span>: <span style="color:#66d9ef">false</span>
-</code></pre></div><p>You&rsquo;ll notice that I used another <em>app</em> <code>actions/create-release@v1</code> to publish a new release right at the end. This might seem like a pointless step because my release artifact is really the Docker image on Docker hub and I already have a tag. However, a broken build (due to failed image push maybe) will prevent this release from happening so the presence of a release is indication of the latest working version for which you can be sure to find a docker image.</p>
-<p><img src="https://cldup.com/LCj1GWFMXm.png" alt="release"></p>
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+</code></pre>
+
+<p>You&rsquo;ll notice that I used another <em>app</em> <code>actions/create-release@v1</code> to publish a new release right at the end. This might seem like a pointless step because my release artifact is really the Docker image on Docker hub and I already have a tag. However, a broken build (due to failed image push maybe) will prevent this release from happening so the presence of a release is indication of the latest working version for which you can be sure to find a docker image.</p>
+
+<p><img src="https://cldup.com/LCj1GWFMXm.png" alt="release" /></p>
+
 <p>Also I can add a nice release badge to my README courtesy of the amazing badges at <a href="https://shields.io/">shields.io</a>:</p>
-<p><img src="https://img.shields.io/github/v/release/mtharrison/github-pr-comment-resource" alt="GitHub release (latest SemVer)"></p>
+
+<p><img src="https://img.shields.io/github/v/release/mtharrison/github-pr-comment-resource" alt="GitHub release (latest SemVer)" /></p>
+
 <h2 id="conclusion">Conclusion</h2>
+
 <p>I was impressed how straightforward and painless it was to migrate from my usual Travis workflow to using GitHub actions. The functionality, for my modest needs seems pretty much on par. I was able to set up everything I needed in under a couple of hours and the documentation was fairly extensive even if it requires jumping around quite a bit between different guides.</p>
+
 <p>The community potential via marketplace seems really promising too. The opportunity to monetise them seems like another positive step in making open source contributions financially rewarding.</p>
+
 <p>I can see that GitHub actions may become the standard for small to medium open source projects.</p>
+
 <p>I&rsquo;m definitely going to dive deeper into them in the coming months and might even write a few apps of my own.</p>
+
 <p>All this positivity aside, I still have a slight concern about the growing monopolising grip over open source that Microsoft seem to have and what this means for well established but less rich competitors in the market. However, I think the convenience of having automation built into GitHub is good news for the quality of open source and I&rsquo;m all for anything that moves us forward to creating higher quality and more secure software!</p>
+
 <h2 id="resource">Resource</h2>
+
 <p>If you want to play with Actions I would recommend starting reading some of the materials here:</p>
+
 <ul>
 <li><a href="https://docs.github.com/en/actions">https://docs.github.com/en/actions</a></li>
 <li><a href="https://docs.github.com/en/actions/reference/events-that-trigger-workflows">https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions</a></li>

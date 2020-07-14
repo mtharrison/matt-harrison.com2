@@ -17,7 +17,7 @@
 
 
 
-<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
 
 
 <link rel="icon" href="/favicon.png" type="image/x-icon">
@@ -108,17 +108,25 @@ https://github.com/alex-shpak/hugo-book
     <strong>July 23, 2014</strong>
   </h5>
 </header>
-<article class="markdown"><p>This isn&rsquo;t an X is better than Y post. I love Express, I still think it&rsquo;s a really great module and I&rsquo;ve used it successfully in many projects.</p>
+<article class="markdown">
+
+<p>This isn&rsquo;t an X is better than Y post. I love Express, I still think it&rsquo;s a really great module and I&rsquo;ve used it successfully in many projects.</p>
+
 <p>That being said, I&rsquo;m hearing good things about Hapi.js (referred to as Hapi from hereon in) recently which is another HTTP server framework for Node.js. So I figured it was time to check it out. As most people who I imagine come to Hapi, I have experience with Express and I&rsquo;m wondering how it differs. This post is an in-depth examination of the 2 frameworks; their offerings, similarities and differences. It will split over 2 posts. This is <strong>part 1</strong>.</p>
+
 <p><em>Note: Part 2 has been temporarily delayed whilst I work on a Hapi Book (Hapi.js in Action for Manning). I&rsquo;ll post a discount code for my readers once the book is released.</em></p>
+
 <p>Part 1 will look at:</p>
+
 <ul>
 <li>Making a server</li>
 <li>Adding routes</li>
 <li>Inspecting requests</li>
 <li>Working with responses</li>
 </ul>
+
 <p>Part 2 will look at:</p>
+
 <ul>
 <li>Rendering views</li>
 <li>Routers</li>
@@ -126,15 +134,23 @@ https://github.com/alex-shpak/hugo-book
 <li>Packs in Hapi.js</li>
 <li>Conclusion</li>
 </ul>
+
 <h2 id="what-is-hapi">What is Hapi?</h2>
+
 <p>Hapi was developed by Eran Hammer and the team at Walmart labs, who found that Express wasn&rsquo;t meeting their needs for maintainability and extensibility.</p>
+
 <p>Eran wrote a <a href="http://hueniverse.com/2012/12/20/hapi-a-prologue/">great post on his blog</a> that you should read. There, Eran sums up the main motivation for creating Hapi:</p>
+
 <blockquote>
 <p>hapi was created around the idea that configuration is better than code, that business logic must be isolated from the transport layer, and that native node constructs like buffers and stream should be supported as first class objects. But most importantly, it was created to provide a modern, comprehensive environment in which as much of the effort is spent delivering business value.</p>
 </blockquote>
+
 <h2 id="making-a-server">Making a server</h2>
+
 <p>Arguably the simplest thing to do in either framework is creating a server that binds and listens on a port.</p>
+
 <p><strong>Only using Node&rsquo;s http module</strong></p>
+
 <pre><code>var http = require('http');
 var server = http.createServer(function(){});
 
@@ -142,7 +158,9 @@ server.listen(3000, function(){
     console.log(&quot;Listening on port 3000&quot;);
 });
 </code></pre>
+
 <p><strong>Express</strong></p>
+
 <pre><code>var express = require('express');
 var app = express();
 
@@ -150,7 +168,9 @@ var server = app.listen(3000, function(){
     console.log('Listening on port %d', server.address().port);
 });
 </code></pre>
+
 <p><strong>Hapi</strong></p>
+
 <pre><code>var Hapi = require('hapi');
 var server = new Hapi.Server(3000);
 
@@ -158,30 +178,45 @@ server.start(function () {
     console.log('Server running at:', server.info.uri);
 });
 </code></pre>
+
 <p>Nothing too different here except Hapi takes a port number as you initialize a server rather than at the listen stage. Personally, I prefer this subtly different approach because it reduces the distance in code between creation and configuration of the server.</p>
-<p>The reason I&rsquo;ve also shown this example using only the <code>http</code> library is because I want to highlight a difference between Express and Hapi. Node&rsquo;s <code>http.createServer</code> takes a callback as an argument and it is this callback that will be evaluated with each HTTP request to the server. The call to <code>express()</code> returns a function (named <code>app</code> above) which is a callback which can be passed to <code>http.createServer</code>. So essentially your whole Express app is a callback for node&rsquo;s built in http server. In fact, Express&rsquo; <code>listen</code> method is just a wrapper around both of Node <code>http</code>'s <code>createServer</code> and <code>listen</code>.</p>
+
+<p>The reason I&rsquo;ve also shown this example using only the <code>http</code> library is because I want to highlight a difference between Express and Hapi. Node&rsquo;s <code>http.createServer</code> takes a callback as an argument and it is this callback that will be evaluated with each HTTP request to the server. The call to <code>express()</code> returns a function (named <code>app</code> above) which is a callback which can be passed to <code>http.createServer</code>. So essentially your whole Express app is a callback for node&rsquo;s built in http server. In fact, Express&rsquo; <code>listen</code> method is just a wrapper around both of Node <code>http</code>&rsquo;s <code>createServer</code> and <code>listen</code>.</p>
+
 <p>From express source (lib/application.js):</p>
+
 <pre><code>app.listen = function(){
   var server = http.createServer(this);
   return server.listen.apply(server, arguments);
 };
 </code></pre>
+
 <p>In contrast, Hapi&rsquo;s constructor provides a instance of a Hapi server which is essentially its own universe and is mapiulated using its API.</p>
+
 <p>I find Express&rsquo;s one-to-one mapping to the built in node module here quite natural and elegant.</p>
+
 <h2 id="adding-routes">Adding routes</h2>
+
 <p>Without routes your server isn&rsquo;t very interesting. This is where the 2 frameworks start to diverge a little more.</p>
-<p>Here&rsquo;s an example of creating a route which responds to &ldquo;GET /&rdquo; and returns &ldquo;Hello, World!&quot;:</p>
+
+<p>Here&rsquo;s an example of creating a route which responds to &ldquo;GET /&rdquo; and returns &ldquo;Hello, World!&rdquo;:</p>
+
 <p><strong>Express</strong></p>
+
 <pre><code>app.get('/', function(req, res){
   res.send('Hello, World!');
 });
 </code></pre>
+
 <p>Here we can see express&rsquo; strong influence from Sinatra, using a similar API as the popular Ruby library:</p>
+
 <pre><code>get '/' do
   'Hello world!'
 end
 </code></pre>
+
 <p><strong>Hapi</strong></p>
+
 <pre><code>server.route({
     method: 'GET',
     path: '/',
@@ -190,43 +225,56 @@ end
     }
 });
 </code></pre>
+
 <p>A few things to notice that are different in Hapi:</p>
+
 <ul>
-<li>
-<p><code>server.route</code> takes a single argument which is a configuration object</p>
-</li>
-<li>
-<p>The HTTP verb you&rsquo;re responding to doesn&rsquo;t dictate the API method to use unlike express (<code>app.get()</code>, <code>app.post()</code> etc), it&rsquo;s always <code>server.route</code> and the HTTP verb is an option given as a string. If you want to respond with this handler to any HTTP verb you can specify the method as <code>&quot;*&quot;</code>. For similar functionality on Express, you&rsquo;d use the <code>app.all()</code> method</p>
-</li>
-<li>
-<p>The response parameter in the handler function (<code>reply</code>) is a function which you call with the body you wish to send</p>
-</li>
+<li><p><code>server.route</code> takes a single argument which is a configuration object</p></li>
+
+<li><p>The HTTP verb you&rsquo;re responding to doesn&rsquo;t dictate the API method to use unlike express (<code>app.get()</code>, <code>app.post()</code> etc), it&rsquo;s always <code>server.route</code> and the HTTP verb is an option given as a string. If you want to respond with this handler to any HTTP verb you can specify the method as <code>&quot;*&quot;</code>. For similar functionality on Express, you&rsquo;d use the <code>app.all()</code> method</p></li>
+
+<li><p>The response parameter in the handler function (<code>reply</code>) is a function which you call with the body you wish to send</p></li>
 </ul>
+
 <p>If you have the need to dynamically generate routes from some external config, I feel Hapi would be cleaner here. For a good example of this being done, check out the <a href="https://github.com/poeticninja/hapi-ninja">hapi-ninja</a> example on Github.</p>
+
 <h3 id="inspecting-requests">Inspecting requests</h3>
+
 <p>In all but the most simple route handlers will need to do some examination of the HTTP request. Whether that&rsquo;s looking at request headers, decoding the body into structured data (as with form data or JSON) or reading cookies.</p>
+
 <p><strong>Express</strong></p>
+
 <p>In express, every route handler receives 3 arguments:</p>
+
 <pre><code>app.get('/', function(req, res, next){
     res.send('Hello, World!');
 });
 </code></pre>
+
 <p><code>req</code> is the request object within which all the meaningful HTTP request data is parsed into. Some of the most useful properties/methods are:</p>
+
 <ul>
 <li><code>req.headers</code> - The requests headers</li>
 <li><code>req.params</code> - Named parameters in the URL path</li>
 <li><code>req.query</code> - Named parameters in the URL query string</li>
 <li><code>req.param()</code> - Convenient sugar to get a parameter from any of the above</li>
 </ul>
+
 <p>There&rsquo;s a lot of other useful stuff and I would refer you to the <a href="http://expressjs.com/api#req.params">documentation</a> or even better the <a href="https://github.com/visionmedia/express/blob/master/lib/request.js">code</a>, rather than repeating it all here. Express&rsquo; request object is a decorated, extended version of Node&rsquo;s <a href="http://nodejs.org/api/http.html#http_http_incomingmessage">http.IncomingMessage</a> object as can be seen here (express/lib/request.js):</p>
+
 <pre><code>var req = exports = module.exports = {
   __proto__: http.IncomingMessage.prototype
 };
 </code></pre>
+
 <p><strong>Hapi</strong></p>
+
 <p>Hapi provides much the same data as Express within its <code>request</code> object with some extra sugar for authentcation and <a href="http://nodejs.org/api/domain.html">domains</a>.</p>
+
 <p>Hapi provides access to the node request object through a property <code>request.raw</code>. Hapi defines a <a href="http://hapijs.com/api#request-lifecycle">request lifecycle</a> with predefined &lsquo;hooks&rsquo; or extension points that plugins can &lsquo;hook into&rsquo; e.g. <code>onRequest</code>, <code>onPreAuth</code> and <code>onPostAuth</code>.</p>
+
 <p>There are also a set of <code>request</code> events which one can use to package up orthogonal behaviour. Here&rsquo;s an example (taken from the Hapi docs) that creates an SHA1 hash of all each request body:</p>
+
 <pre><code>var Crypto = require('crypto');
 var Hapi = require('hapi');
 var server = new Hapi.Server();
@@ -250,11 +298,17 @@ server.ext('onRequest', function (request, reply) {
     });
 });
 </code></pre>
+
 <p>For more info about Hapi&rsquo;s request object, <a href="http://hapijs.com/api#request-object">read the docs</a>.</p>
+
 <h2 id="working-with-responses">Working with responses</h2>
+
 <p><strong>Express</strong></p>
+
 <p>Express wraps the <a href="http://nodejs.org/api/http.html#http_class_http_serverresponse"><code>http.ServerResponse</code></a> object, which offers basic methods like <code>setHeader()</code>, <code>write()</code> and <code>end()</code>.</p>
+
 <p>Express adds a bunch of really useful <em>chainable</em> convenience methods, allowing you to write things like:</p>
+
 <pre><code>res.set({
   'Content-Type': 'image/png',
   'Content-Length': '123',
@@ -263,14 +317,23 @@ server.ext('onRequest', function (request, reply) {
 .status(404)
 .sendfile('/path/to/404.png');
 </code></pre>
+
 <p><code>res.send</code> in Express can take various data types (<code>string</code>, <code>Buffer</code>, <code>object</code>) and will set the appropriate <code>content-type</code> and convert the data to a <code>Buffer</code> for writing into the response stream.</p>
+
 <p>Express also has a <a href="http://expressjs.com/api#res.render"><code>res.render()</code></a> method. In my opinion this is one of the most useful Express features if you&rsquo;re making a website. <code>res.render()</code> takes the path of a <code>view</code> file which can be <code>html</code> or a template written in a template language, such as <a href="http://jade-lang.com/">jade</a> or <a href="http://embeddedjs.com/">ejs</a> and a set of local variables to be passed to the view. The rendered HTML is then written into the response. An optional callback parameter will receive the rendered HTML as a parameter in case you need to do further processing or inspect the HTML before before writing it out.</p>
+
 <p><strong>Hapi</strong></p>
+
 <p>In Hapi, the second parameter in a handler function is not the &lsquo;response&rsquo; object, but rather an object called <code>reply</code>.</p>
+
 <p>When <code>reply()</code> is called as a function, it will return the <code>response</code> object and continue executing through the rest of the handler function, and in <code>process.nextTick()</code>, it will send the response.</p>
+
 <p>This means after calling <code>reply()</code> you can still modify the response until the handler function returns.</p>
+
 <p>Like Express, you can pass <code>reply()</code> a variety of data types and it will figure out what it needs to send.</p>
+
 <p>Hapi&rsquo;s <a href="http://hapijs.com/api#response-object">response object</a> manages things like setting headers, etags and performing redirects much in the same way Express does.</p>
+
 <p><a href="https://news.ycombinator.com/item?id=8089315">Discuss on Hacker News</a></p>
 </article>
 

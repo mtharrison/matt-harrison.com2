@@ -17,7 +17,7 @@
 
 
 
-<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
 
 
 <link rel="icon" href="/favicon.png" type="image/x-icon">
@@ -108,29 +108,50 @@ https://github.com/alex-shpak/hugo-book
     <strong>October 17, 2013</strong>
   </h5>
 </header>
-<article class="markdown"><p>A command line banking tool written in Node.js</p>
-<p><img src="/images/natwest.png" alt="Bilby Stampede"></p>
+<article class="markdown">
+
+<p>A command line banking tool written in Node.js</p>
+
+<p><img src="/images/natwest.png" alt="Bilby Stampede" /></p>
+
 <p>Natwest.js is a command line tool written in Node.js which lets CLI addicts get your account information programatically from Natwest Bank (UK). It uses PhantomJS behind the scenes to fire up a webkit, submit your credentials and scrape some ugly HTML and output it into a beautiful terminal interface.</p>
+
 <h2 id="installation">Installation</h2>
+
 <p>PhantomJS is required for this tool to work, Installation instructions are here: <a href="http://phantomjs.org/download.html">http://phantomjs.org/download.html</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">git clone https://github.com/mtharrison/natwest.js
+
+<pre><code class="language-sh">git clone https://github.com/mtharrison/natwest.js
 cd natwest.js
 npm install
 chmod u+x natwest.js
-</code></pre></div><h2 id="usage">Usage</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./natwest.js             <span style="color:#75715e"># Uses the default CLI table renderer</span>
-                         <span style="color:#75715e"># OR</span>
-./natwest.js -r server   <span style="color:#75715e"># Serves you JSON via an Express server</span>
-</code></pre></div><h2 id="customisation-and-renderers">Customisation and Renderers</h2>
+</code></pre>
+
+<h2 id="usage">Usage</h2>
+
+<pre><code class="language-sh">./natwest.js             # Uses the default CLI table renderer
+                         # OR
+./natwest.js -r server   # Serves you JSON via an Express server
+</code></pre>
+
+<h2 id="customisation-and-renderers">Customisation and Renderers</h2>
+
 <p>This tool is designed to allow alternative renderers to present your data in any way you wish. V0.1.0 comes bundled with 2 renderers: The default CLI table (see screenshot) and the JSON server renderer. More will be included in future. Feel free to submit pull requests for renderers (or anything for that matter!).</p>
+
 <h2 id="security">Security</h2>
+
 <p>Please use wisely, obviously anything that deals with personal financial information needs to used sensibly. The program will prompt you to save your credentials (defaults to no), if you say yes, it will store these unencrypted in a JSON file called <code>credentials.json</code>, I only recommend you do this for development and that&rsquo;s why it&rsquo;s there. No other data is stored.</p>
+
 <h2 id="version">Version</h2>
+
 <p>0.1.0</p>
+
 <h2 id="roadmap">Roadmap</h2>
+
 <p>-0.1.1 Cleaning, refactoring and separation into a public API
 -0.1.2 Addition of error reporting for when things go wrong</p>
+
 <h2 id="license">License</h2>
+
 <p>MIT</p>
 </article>
 
