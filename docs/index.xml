@@ -12,6 +12,15 @@
     
     
     <item>
+      <title>Publishing this Hugo Blog with GitHub Actions</title>
+      <link>https://matt-harrison.com/posts/github-actions-hugo/</link>
+      <pubDate>Tue, 14 Jul 2020 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/github-actions-hugo/</guid>
+      <description>The start of the post</description>
+    </item>
+    
+    <item>
       <title>First experience with GitHub Actions</title>
       <link>https://matt-harrison.com/posts/github-actions/</link>
       <pubDate>Sun, 05 Jul 2020 12:00:00 +0100</pubDate>
