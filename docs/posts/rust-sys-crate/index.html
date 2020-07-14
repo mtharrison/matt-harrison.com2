@@ -17,7 +17,7 @@
 
 
 
-<link rel="stylesheet" href="/book.min.19b2fad70b59ba6d7af5b9f71e301499899fb2a0626d295a45d769a484a7ace9.css">
+<link rel="stylesheet" href="/book.min.a2344d59a93284ab567f21e07597fc4b2365a72bad5df95562efbbf8e90a75d5.css">
 
 
 <link rel="icon" href="/favicon.png" type="image/x-icon">
@@ -108,17 +108,28 @@ https://github.com/alex-shpak/hugo-book
     <strong>August 22, 2018</strong>
   </h5>
 </header>
-<article class="markdown"><p>Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c++. Luckily it&rsquo;s not too complicated to make use of c/c++ projects in Rust. In this short post I&rsquo;ll show you how.</p>
+<article class="markdown">
+
+<p>Rust is an awesome language and platform to use, however there&rsquo;s so much great software already written in c/c++. Luckily it&rsquo;s not too complicated to make use of c/c++ projects in Rust. In this short post I&rsquo;ll show you how.</p>
+
 <p>From a high-level perspective you can take any c/c++ project, for this example I&rsquo;m going to use <a href="https://duktape.org/">Duktape</a>, the lightweight embeddable JavaScript engine. I&rsquo;m choosing Duktape because it&rsquo;s <em>very</em> simple to build it - it&rsquo;s just 1 <code>.c</code> file. Hopefully this will make the steps easy to understand and we won&rsquo;t get too bogged down in build system issues.</p>
+
 <p>The steps are:</p>
+
 <ol>
 <li>Create a *-sys create which has your native dependency included along with knowledge of how to build it and exposes a preferably safe API to consumers. We&rsquo;ll be making <code>duktape-sys</code> crate here.</li>
 <li>Make a crate that consumes the <code>-sys</code> crate and uses it to build something cool. Here we&rsquo;ll be building <code>duk</code> which is just a binary which you can pass a JavaScript file too and it will print out the last number on the stack</li>
 </ol>
+
 <h3 id="creating-duktape-sys-crate">Creating duktape-sys crate</h3>
+
 <p>First we&rsquo;ll create a new library crate using cargo:</p>
+
 <pre><code>$ cargo new --lib duktape2-sys
-</code></pre><p>We&rsquo;ll download and bundle duktape source code from <a href="https://duktape.org/">https://duktape.org/</a>. I&rsquo;ve added this to a <code>vendor</code> directory:</p>
+</code></pre>
+
+<p>We&rsquo;ll download and bundle duktape source code from <a href="https://duktape.org/">https://duktape.org/</a>. I&rsquo;ve added this to a <code>vendor</code> directory:</p>
+
 <pre><code>.
 ├── Cargo.lock
 ├── Cargo.toml
@@ -130,84 +141,94 @@ https://github.com/alex-shpak/hugo-book
 └── vendor
     └── duktape-2.3.0
         └── ...
-</code></pre><p>We&rsquo;ll need some dependencies:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml"><span style="color:#960050;background-color:#1e0010">//</span> <span style="color:#a6e22e">cargo</span>.<span style="color:#a6e22e">toml</span>
+</code></pre>
 
-[<span style="color:#a6e22e">package</span>]
-<span style="color:#a6e22e">name</span> = <span style="color:#e6db74">&#34;duktape2-sys&#34;</span>
-<span style="color:#a6e22e">version</span> = <span style="color:#e6db74">&#34;0.1.0&#34;</span>
-<span style="color:#a6e22e">authors</span> = [<span style="color:#e6db74">&#34;Matt Harrison &lt;hi@matt-harrison.com&gt;&#34;</span>]
+<p>We&rsquo;ll need some dependencies:</p>
 
-[<span style="color:#a6e22e">dependencies</span>]
-<span style="color:#a6e22e">libc</span> = <span style="color:#e6db74">&#34;0.2.0&#34;</span>
+<pre><code class="language-toml">// cargo.toml
 
-[<span style="color:#a6e22e">build</span><span style="color:#960050;background-color:#1e0010">-</span><span style="color:#a6e22e">dependencies</span>]
-<span style="color:#a6e22e">cc</span> = <span style="color:#e6db74">&#34;1.0&#34;</span>
-</code></pre></div><p>We&rsquo;ll use the libc crate here to use the <code>c_void</code> type, we&rsquo;ll pass this around in Rust as a opaque pointer to some memory allocated by C. We&rsquo;ll use the cc crate because it provides us with a crossplatform way to build libduktape from source. Speaking of building duktape, let&rsquo;s create a build.rs file:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// build.rs
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">crate</span> cc;
+[package]
+name = &quot;duktape2-sys&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
 
-<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+[dependencies]
+libc = &quot;0.2.0&quot;
+
+[build-dependencies]
+cc = &quot;1.0&quot;
+</code></pre>
+
+<p>We&rsquo;ll use the libc crate here to use the <code>c_void</code> type, we&rsquo;ll pass this around in Rust as a opaque pointer to some memory allocated by C. We&rsquo;ll use the cc crate because it provides us with a crossplatform way to build libduktape from source. Speaking of building duktape, let&rsquo;s create a build.rs file:</p>
+
+<pre><code class="language-rust">// build.rs
+
+extern crate cc;
+
+fn main() {
     cc::Build::new()
-        .file(<span style="color:#e6db74">&#34;vendor/duktape-2.3.0/src/duktape.c&#34;</span>)
-        .compile(<span style="color:#e6db74">&#34;duktape&#34;</span>);
+        .file(&quot;vendor/duktape-2.3.0/src/duktape.c&quot;)
+        .compile(&quot;duktape&quot;);
 }
-</code></pre></div><p>What this magical looking script will do is: when building our crate it will compile  <code>vendor/duktape-2.3.0/src/duktape.c</code> into a static library called <code>libduktape.a</code> inside our <code>target</code> directory and also add a linker library search flag to the rust compiler so that it knows how to link the native library. That&rsquo;s all we need to handle building and linking with the native code!</p>
+</code></pre>
+
+<p>What this magical looking script will do is: when building our crate it will compile  <code>vendor/duktape-2.3.0/src/duktape.c</code> into a static library called <code>libduktape.a</code> inside our <code>target</code> directory and also add a linker library search flag to the rust compiler so that it knows how to link the native library. That&rsquo;s all we need to handle building and linking with the native code!</p>
+
 <p>Let&rsquo;s go and implement a Rust API that we can use in other crates:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#75715e">// Crates
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">crate</span> libc;
 
-<span style="color:#75715e">// Use statements
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">use</span> std::error::Error;
-<span style="color:#66d9ef">use</span> std::ffi::CString;
-<span style="color:#66d9ef">use</span> std::fmt;
-<span style="color:#66d9ef">use</span> std::os::raw::c_char;
-<span style="color:#66d9ef">use</span> std::ptr;
+<pre><code class="language-rust">// Crates
 
-<span style="color:#75715e">// Aliases
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">use</span> libc::c_void <span style="color:#66d9ef">as</span> void;
+extern crate libc;
 
-<span style="color:#75715e">// Duktape constants
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">const</span> DUK_COMPILE_EVAL: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">3</span>;
-<span style="color:#66d9ef">const</span> DUK_COMPILE_SAFE: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">7</span>;
-<span style="color:#66d9ef">const</span> DUK_COMPILE_NOSOURCE: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">9</span>;
-<span style="color:#66d9ef">const</span> DUK_COMPILE_STRLEN: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">10</span>;
-<span style="color:#66d9ef">const</span> DUK_COMPILE_NOFILENAME: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">11</span>;
+// Use statements
 
-<span style="color:#75715e">// Define the FFI with duktape
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> {
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_create_heap</span>(
-        arg1: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
-        arg2: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
-        arg3: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
-        arg4: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
-        arg5: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
-    ) -&gt; <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void;
+use std::error::Error;
+use std::ffi::CString;
+use std::fmt;
+use std::os::raw::c_char;
+use std::ptr;
 
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_destroy_heap</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void);
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_eval_raw</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void, src: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> c_char, arg1: <span style="color:#66d9ef">u32</span>, arg2: <span style="color:#66d9ef">u32</span>) -&gt; <span style="color:#66d9ef">u32</span>;
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">duk_get_int</span>(ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void, idx: <span style="color:#66d9ef">i32</span>) -&gt; <span style="color:#66d9ef">i32</span>;
+// Aliases
+
+use libc::c_void as void;
+
+// Duktape constants
+
+const DUK_COMPILE_EVAL: u32 = 1 &lt;&lt; 3;
+const DUK_COMPILE_SAFE: u32 = 1 &lt;&lt; 7;
+const DUK_COMPILE_NOSOURCE: u32 = 1 &lt;&lt; 9;
+const DUK_COMPILE_STRLEN: u32 = 1 &lt;&lt; 10;
+const DUK_COMPILE_NOFILENAME: u32 = 1 &lt;&lt; 11;
+
+// Define the FFI with duktape
+
+extern &quot;C&quot; {
+    fn duk_create_heap(
+        arg1: *const void,
+        arg2: *const void,
+        arg3: *const void,
+        arg4: *const void,
+        arg5: *const void,
+    ) -&gt; *const void;
+
+    fn duk_destroy_heap(ctx: *const void);
+    fn duk_eval_raw(ctx: *const void, src: *const c_char, arg1: u32, arg2: u32) -&gt; u32;
+    fn duk_get_int(ctx: *const void, idx: i32) -&gt; i32;
 }
 
-<span style="color:#75715e">// Create a DukHeap struct which just privately holds the pointer
-</span><span style="color:#75715e">// to the native duktape heap
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DukHeap</span> {
-    ctx: <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> void,
+// Create a DukHeap struct which just privately holds the pointer
+// to the native duktape heap
+
+pub struct DukHeap {
+    ctx: *const void,
 }
 
-<span style="color:#66d9ef">impl</span> DukHeap {
-    <span style="color:#75715e">// Create a new default heap object
-</span><span style="color:#75715e"></span>
-    <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">new</span>() -&gt; <span style="color:#a6e22e">DukHeap</span> {
-        <span style="color:#66d9ef">unsafe</span> {
-            <span style="color:#66d9ef">let</span> ctx <span style="color:#f92672">=</span> duk_create_heap(
+impl DukHeap {
+    // Create a new default heap object
+
+    pub fn new() -&gt; DukHeap {
+        unsafe {
+            let ctx = duk_create_heap(
                 ptr::null(),
                 ptr::null(),
                 ptr::null(),
@@ -219,89 +240,97 @@ https://github.com/alex-shpak/hugo-book
         }
     }
 
-    <span style="color:#75715e">// Evaluates a JavaScript script within the current context
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Returns the i32 on top of the stack or an error
-</span><span style="color:#75715e"></span>
-    <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">eval_script</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self, script: <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span>) -&gt; Result<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">i32</span>, Box<span style="color:#f92672">&lt;</span>Error<span style="color:#f92672">&gt;&gt;</span> {
-        <span style="color:#66d9ef">let</span> code <span style="color:#f92672">=</span> CString::new(script)<span style="color:#f92672">?</span>;
+    // Evaluates a JavaScript script within the current context
+    // Returns the i32 on top of the stack or an error
 
-        <span style="color:#66d9ef">let</span> flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-            <span style="color:#f92672">|</span> DUK_COMPILE_EVAL
-            <span style="color:#f92672">|</span> DUK_COMPILE_NOSOURCE
-            <span style="color:#f92672">|</span> DUK_COMPILE_STRLEN
-            <span style="color:#f92672">|</span> DUK_COMPILE_NOFILENAME
-            <span style="color:#f92672">|</span> DUK_COMPILE_SAFE;
+    pub fn eval_script(&amp;mut self, script: &amp;str) -&gt; Result&lt;i32, Box&lt;Error&gt;&gt; {
+        let code = CString::new(script)?;
 
-        <span style="color:#66d9ef">let</span> res <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { duk_eval_raw(self.ctx, code.as_ptr(), <span style="color:#ae81ff">0</span>, flags) };
+        let flags = 0
+            | DUK_COMPILE_EVAL
+            | DUK_COMPILE_NOSOURCE
+            | DUK_COMPILE_STRLEN
+            | DUK_COMPILE_NOFILENAME
+            | DUK_COMPILE_SAFE;
 
-        <span style="color:#66d9ef">if</span> res <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
-            <span style="color:#66d9ef">return</span> Err(Box::new(DukError::new(<span style="color:#e6db74">&#34;Eval failed&#34;</span>)));
+        let res = unsafe { duk_eval_raw(self.ctx, code.as_ptr(), 0, flags) };
+
+        if res != 0 {
+            return Err(Box::new(DukError::new(&quot;Eval failed&quot;)));
         }
 
-        <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> <span style="color:#66d9ef">unsafe</span> { duk_get_int(self.ctx, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) };
+        let result = unsafe { duk_get_int(self.ctx, -1) };
 
         Ok(result)
     }
 }
 
-<span style="color:#66d9ef">impl</span> Drop <span style="color:#66d9ef">for</span> DukHeap {
-    <span style="color:#75715e">// When our DukHeap is dropped we also destroy the native heap
-</span><span style="color:#75715e"></span>
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">drop</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self) {
-        <span style="color:#66d9ef">unsafe</span> {
+impl Drop for DukHeap {
+    // When our DukHeap is dropped we also destroy the native heap
+
+    fn drop(&amp;mut self) {
+        unsafe {
             duk_destroy_heap(self.ctx);
         }
     }
 }
 
-<span style="color:#75715e">// A custom error type
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#[derive(Debug)]</span>
-<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">DukError</span> {
+// A custom error type
+
+#[derive(Debug)]
+struct DukError {
     details: String,
 }
 
-<span style="color:#66d9ef">impl</span> DukError {
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">new</span>(msg: <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span>) -&gt; <span style="color:#a6e22e">DukError</span> {
+impl DukError {
+    fn new(msg: &amp;str) -&gt; DukError {
         DukError {
-            details: <span style="color:#a6e22e">msg</span>.to_string(),
+            details: msg.to_string(),
         }
     }
 }
 
-<span style="color:#66d9ef">impl</span> fmt::Display <span style="color:#66d9ef">for</span> DukError {
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">fmt</span>(<span style="color:#f92672">&amp;</span>self, f: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> fmt::Formatter) -&gt; <span style="color:#a6e22e">fmt</span>::Result {
-        write<span style="color:#f92672">!</span>(f, <span style="color:#e6db74">&#34;{}&#34;</span>, self.details)
+impl fmt::Display for DukError {
+    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
+        write!(f, &quot;{}&quot;, self.details)
     }
 }
 
-<span style="color:#66d9ef">impl</span> Error <span style="color:#66d9ef">for</span> DukError {
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">description</span>(<span style="color:#f92672">&amp;</span>self) -&gt; <span style="color:#66d9ef">&amp;</span><span style="color:#66d9ef">str</span> {
-        <span style="color:#f92672">&amp;</span>self.details
+impl Error for DukError {
+    fn description(&amp;self) -&gt; &amp;str {
+        &amp;self.details
     }
 }
 
-<span style="color:#75715e">// A simple test
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">#[cfg(test)]</span>
-<span style="color:#66d9ef">mod</span> tests {
+// A simple test
 
-    <span style="color:#66d9ef">use</span> <span style="color:#66d9ef">super</span>::DukHeap;
+#[cfg(test)]
+mod tests {
 
-    <span style="color:#75715e">#[test]</span>
-    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">my_test</span>() {
-        <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> heap <span style="color:#f92672">=</span> DukHeap::new();
-        <span style="color:#66d9ef">let</span> script <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;12 * 65 / 3&#34;</span>;
-        <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> heap.eval_script(script);
+    use super::DukHeap;
 
-        assert_eq<span style="color:#f92672">!</span>(result.unwrap(), <span style="color:#ae81ff">260</span>);
+    #[test]
+    fn my_test() {
+        let mut heap = DukHeap::new();
+        let script = &quot;12 * 65 / 3&quot;;
+        let result = heap.eval_script(script);
+
+        assert_eq!(result.unwrap(), 260);
     }
 }
-</code></pre></div><p>Running <code>cargo test</code> tells us that things are working quite nicely!</p>
+</code></pre>
+
+<p>Running <code>cargo test</code> tells us that things are working quite nicely!</p>
+
 <p>The next step is to use this sys-crate in some consumer crate.</p>
+
 <p>Let&rsquo;s create a new crate called <code>dukrs</code>:</p>
+
 <pre><code>$ cargo new --bin dukjs
-</code></pre><p>We&rsquo;ll add our <code>duktape2-sys</code> crate as a dependency using the relative path as we won&rsquo;t be publishing it to crates.io.</p>
+</code></pre>
+
+<p>We&rsquo;ll add our <code>duktape2-sys</code> crate as a dependency using the relative path as we won&rsquo;t be publishing it to crates.io.</p>
+
 <pre><code>// cargo.toml
 
 [package]
@@ -311,7 +340,10 @@ authors = [&quot;Matt Harrison &lt;hi@matt-harrison.com&gt;&quot;]
 
 [dependencies]
 duktape2-sys = { path = &quot;../duktape2-sys&quot; }
-</code></pre><p>Let&rsquo;s write our <code>main.rs</code> to load a script passed as an argument to our binary and then execute it and print the result.</p>
+</code></pre>
+
+<p>Let&rsquo;s write our <code>main.rs</code> to load a script passed as an argument to our binary and then execute it and print the result.</p>
+
 <pre><code>// main.rs
 
 extern crate duktape2_sys;
@@ -337,7 +369,10 @@ fn main() {
 
     println!(&quot;Result was {}&quot;, result);
 }
-</code></pre><p>Pretty simple, right? Let&rsquo;s create a script to test this on, we&rsquo;ll write a simple script using js to calculate the 20th fibonacci number:</p>
+</code></pre>
+
+<p>Pretty simple, right? Let&rsquo;s create a script to test this on, we&rsquo;ll write a simple script using js to calculate the 20th fibonacci number:</p>
+
 <pre><code>// fib.js
 
 function fibonacci(num) {
@@ -348,12 +383,20 @@ function fibonacci(num) {
 }
 
 fibonacci(20);
-</code></pre><p>Let&rsquo;s build our binary:</p>
+</code></pre>
+
+<p>Let&rsquo;s build our binary:</p>
+
 <pre><code>$ cargo build --release
-</code></pre><p>Now let&rsquo;s give it a spin to see if it all works:</p>
+</code></pre>
+
+<p>Now let&rsquo;s give it a spin to see if it all works:</p>
+
 <pre><code>➜  dukjs git:(master) ✗ ./target/release/dukjs fib.js
 Result was 6765
-</code></pre><p>That&rsquo;s pretty sweet. So to recap: we created a sys-crate that can compile a native C library and link with a safe Rust wrapper API. We build a simple crate to consume that sys-crate which creates a binary that knows how to evaulate JavaScript.</p>
+</code></pre>
+
+<p>That&rsquo;s pretty sweet. So to recap: we created a sys-crate that can compile a native C library and link with a safe Rust wrapper API. We build a simple crate to consume that sys-crate which creates a binary that knows how to evaulate JavaScript.</p>
 </article>
 
       
