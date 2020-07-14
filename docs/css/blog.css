@@ -1,0 +1,30 @@
+h1 {
+    font-size: 1.7rem;
+}
+
+.sidebar-about h1 {
+    font-size: 2.0rem;
+}
+
+.read-more-link {
+    display: none;
+}
+
+.lead {
+    font-size: 0.8rem;
+}
+
+@media (min-width: 48em) {
+    .sidebar {
+        text-align: left;
+    }
+    .content {
+        max-width: 43rem;
+    }
+}
+
+@media (min-width: 58em) {
+    html {
+        font-size: 18px;
+    }
+}
