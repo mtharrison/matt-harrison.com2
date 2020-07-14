@@ -35,7 +35,9 @@ jobs:
         run: cd main && hugo 
     
       - name: Copy files
-        run: mv main/public/* docs/
+#         run: mv main/public/* docs/
+        run: ls && ls main
+  
 
       - name: Commit to docs branch
         run: |
