@@ -20,6 +20,11 @@ jobs:
 
       - name: Check out repository
         uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Checkout theme submodule
+        run: ls -al && hugo
 
       - name: Hugo Build
         run: ls -al && hugo
