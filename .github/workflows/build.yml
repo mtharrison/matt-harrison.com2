@@ -31,11 +31,7 @@ jobs:
 
       - name: Commit to master
         run: |
-          git remote add github "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
-          git pull github ${GITHUB_REF} --ff-only
-
           git add -A .
-
-          git commit -m "[CI] Build Hugo site"
-          git push github HEAD:${GITHUB_REF}
+          git commit -m "[CI] build hugo static site"
+          git push
 
