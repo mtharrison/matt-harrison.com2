@@ -12,6 +12,16 @@
     
     
     <item>
+      <title>Automating this Hugo Blog with GitHub Actions</title>
+      <link>https://matt-harrison.com/posts/github-actions-hugo/</link>
+      <pubDate>Tue, 14 Jul 2020 00:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/github-actions-hugo/</guid>
+      <description>This Blog is built with the wonderful Hugo static site generator. It is hosted on GitHub pages too and uses the Soho theme - that&amp;rsquo;s a lot of great stuff for free.
+GitHub pages hosts a static site straight off your repo, either via a specific docs folder on master branch or a dedicated gh-pages branch. To build the static directory Hugo just has a simple hugo command to run. Up till now I would run that hugo command after making and changes and then commit and push the changes to my blog repo, simple right?</description>
+    </item>
+    
+    <item>
       <title>First experience with GitHub Actions</title>
       <link>https://matt-harrison.com/posts/github-actions/</link>
       <pubDate>Sun, 05 Jul 2020 12:00:00 +0100</pubDate>
