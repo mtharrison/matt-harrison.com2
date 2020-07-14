@@ -2,7 +2,6 @@ baseURL = "https://matt-harrison.com/"
 languageCode = "en-us"
 title = "Matt Harrison"
 theme = "soho"
-publishDir = "docs"
 disableKinds = ['taxonomy', 'taxonomyTerm']
 enableEmoji = true
 
