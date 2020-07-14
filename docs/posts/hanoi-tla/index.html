@@ -109,77 +109,45 @@ https://github.com/alex-shpak/hugo-book
   </h5>
 </header>
 <article class="markdown"><p>Recently I&rsquo;ve been reading Leslie Lamport&rsquo;s <a href="https://www.google.co.uk/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=2&amp;cad=rja&amp;uact=8&amp;ved=0ahUKEwjV-8q5xvTLAhVL7xQKHSyQDe4QFgghMAE&amp;url=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fum%2Fpeople%2Flamport%2Ftla%2Fbook.html&amp;usg=AFQjCNHSTczYx5rZ2VJZg5rplfASpq6ddg&amp;bvm=bv.118443451,d.ZWU">Specifying Systems</a> book. It&rsquo;s free to read online, but I bought the hardcopy as I&rsquo;m old fashioned like that.</p>
-
 <p>Ever since I discovered TLA+, I&rsquo;ve been fascinated with the idea of using precise language to describe systems upfront. Often as developers we either don&rsquo;t do any upfront specification and just hope to wing it, or we very imprecisely add comments to our code as we go.</p>
-
 <p>TLA+ gives you the language of mathematics (mostly numbers, sets, logic) to write your specs in and then provides the tools to check that your specifications actually work.</p>
-
 <p>I think I&rsquo;m going to write a more complete introduction to TLA+ in a later post but I wanted to share my first real (albeit very, very trivial) success with TLA+ in finding the shortest solution to the classic Towers of Hanoi problem for N discs.</p>
-
-<p><img src="http://www.cs.brandeis.edu/~storer/JimPuzzles/MANIP/TowersOfHanoi/TowersOfHanoiFigure.jpg" alt="Hanoi" /></p>
-
+<p><img src="http://www.cs.brandeis.edu/~storer/JimPuzzles/MANIP/TowersOfHanoi/TowersOfHanoiFigure.jpg" alt="Hanoi"></p>
 <p>I&rsquo;ll walk through my spec, bit-by-bit. First we do some setup. We&rsquo;ll be using sequences to represent the 3 stacks of discs and integers to represent the disc sizes:</p>
-
 <pre><code>EXTENDS Sequences, Integers
 VARIABLE A, B, C
-</code></pre>
-
-<p>Next let&rsquo;s describe the intitial state of our world. This is pretty straightforward, we have all discs on stack A. The smaller integers represent smaller discs:</p>
-
+</code></pre><p>Next let&rsquo;s describe the intitial state of our world. This is pretty straightforward, we have all discs on stack A. The smaller integers represent smaller discs:</p>
 <pre><code>Init == /\ A = &lt;&lt;1,2,3,4,5&gt;&gt;
         /\ B = &lt;&lt;&gt;&gt;
         /\ C = &lt;&lt;&gt;&gt;
-</code></pre>
-
-<p>Next we describe the Next state condition of the system. Which is a possibility of the top disc of any stack moving to any of the others (if allowed by the rules), we&rsquo;ll use a procedure to represent this:</p>
-
+</code></pre><p>Next we describe the Next state condition of the system. Which is a possibility of the top disc of any stack moving to any of the others (if allowed by the rules), we&rsquo;ll use a procedure to represent this:</p>
 <pre><code>Next == \/ Move(A,B,C) \* Move A to B
         \/ Move(A,C,B) \* Move A to C
         \/ Move(B,A,C) \* Move B to A
         \/ Move(B,C,A) \* Move B to C
         \/ Move(C,A,B) \* Move C to A
         \/ Move(C,B,A) \* Move C to B
-</code></pre>
-
-<p>I&rsquo;m sure this could be written more elegantly but I&rsquo;m very new to TLA+, if you know a way please comment below. Now we need to write the <code>Move(x,y,z)</code> formula. This will move from <code>x</code> to <code>y</code> if allowed and leave <code>z</code> unchanged. We&rsquo;ll use another procedure to represent whether the move can occur called <code>CanMove(x,y)</code>:</p>
-
+</code></pre><p>I&rsquo;m sure this could be written more elegantly but I&rsquo;m very new to TLA+, if you know a way please comment below. Now we need to write the <code>Move(x,y,z)</code> formula. This will move from <code>x</code> to <code>y</code> if allowed and leave <code>z</code> unchanged. We&rsquo;ll use another procedure to represent whether the move can occur called <code>CanMove(x,y)</code>:</p>
 <pre><code>Move(x,y,z) == /\ CanMove(x,y)
                /\ x' = Tail(x)
                /\ y' = &lt;&lt;Head(x)&gt;&gt; \o y
                /\ z' = z
-</code></pre>
-
-<p><code>CanMove</code> written in English would say:</p>
-
+</code></pre><p><code>CanMove</code> written in English would say:</p>
 <blockquote>
 <p>If the number of discs on <code>x</code> is zero, <code>false</code>. If the number of discs on <code>y</code> is greater than zero the answer is whether the head of stack <code>y</code> is greater than the head of stack <code>x</code>, otherwise it&rsquo;s <code>true</code></p>
 </blockquote>
-
 <p>The way I wrote this in TLA+ is:</p>
-
 <pre><code>CanMove(x,y) == /\ Len(x) &gt; 0
                 /\ IF Len(y) &gt; 0 THEN Head(y) &gt; Head(x) ELSE TRUE
-</code></pre>
-
-<p>Now this system can quite happily continue forever, but we want to stop it in the winning position (all discs on Rod A). We can write an invariant (state that should never happen) and specify this to the TLA+ model checker software, which will give us an error trace (set of moves) when this condition occurs. We&rsquo;ll get the shortest path to the Invariant condition as the model checker does a breadth-first search of the decision tree.</p>
-
+</code></pre><p>Now this system can quite happily continue forever, but we want to stop it in the winning position (all discs on Rod A). We can write an invariant (state that should never happen) and specify this to the TLA+ model checker software, which will give us an error trace (set of moves) when this condition occurs. We&rsquo;ll get the shortest path to the Invariant condition as the model checker does a breadth-first search of the decision tree.</p>
 <p>Here&rsquo;s the invariant, our winning condition:</p>
-
 <pre><code>Invariant == C /= &lt;&lt;1,2,3,4,5&gt;&gt;
-</code></pre>
-
-<p>Here&rsquo;s the Model checker&rsquo;s error trace to our solution:</p>
-
-<p><img src="https://cldup.com/kHR-QtGvs5.png" alt="error trace" /></p>
-
+</code></pre><p>Here&rsquo;s the Model checker&rsquo;s error trace to our solution:</p>
+<p><img src="https://cldup.com/kHR-QtGvs5.png" alt="error trace"></p>
 <p>We see for a 5 stack Hanoi problem it took 31 steps (it says 32 because it counts the initial state), which fits with the rule of 2^n - 1 steps.</p>
-
 <p>Here&rsquo;s the full spec once pretty printed by LaTeX:</p>
-
-<p><img src="https://cldup.com/jsoiRgnpjJ.png" alt="spec" /></p>
-
+<p><img src="https://cldup.com/jsoiRgnpjJ.png" alt="spec"></p>
 <p>and in ASCII:</p>
-
 <pre><code>------------------------------- MODULE Hanoi -------------------------------
 
 EXTENDS Sequences, Integers
@@ -207,8 +175,7 @@ Next == \/ Move(A,B,C) \* Move A to B
         \/ Move(C,A,B) \* Move C to A
         \/ Move(C,B,A) \* Move C to B
 =============================================================================
-</code></pre>
-</article>
+</code></pre></article>
 
       
     </div>
