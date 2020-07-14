@@ -6,19 +6,10 @@
     <description>Recent content in Posts on Matt Harrison</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Jul 2020 00:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Sun, 05 Jul 2020 12:00:00 +0100</lastBuildDate>
     
 	<atom:link href="https://matt-harrison.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Publishing this Hugo Blog with GitHub Actions</title>
-      <link>https://matt-harrison.com/posts/github-actions-hugo/</link>
-      <pubDate>Tue, 14 Jul 2020 00:00:00 +0100</pubDate>
-      
-      <guid>https://matt-harrison.com/posts/github-actions-hugo/</guid>
-      <description>The start of the post</description>
-    </item>
     
     <item>
       <title>First experience with GitHub Actions</title>
