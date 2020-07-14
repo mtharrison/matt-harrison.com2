@@ -18,27 +18,31 @@ jobs:
           tar -xvzf hugo.tar.gz
           sudo mv hugo /usr/local/bin
 
-      - name: Check out repository
+      - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: true
+          path: main
+
+      - name: Checkout tools repo
+        uses: actions/checkout@v2
+        with:
+          ref: docs
+          path: docs
 
       - name: Hugo Build
-        run: hugo
+        run: ls
 
-      - name: Commit to master
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Action"
-          
-          git branch
+      # - name: Commit to master
+      #   run: |
+      #     git config --local user.email "actions@github.com"
+      #     git config --local user.name "GitHub Action"
 
-          git add docs
+      #     git add docs
 
-          if git diff-index --quiet HEAD --; then
-            echo "No changes..."
-          else
-            git commit -m "[CI] build hugo static site"
-            git push
-          fi
+      #     if git diff-index --quiet HEAD --; then
+      #       echo "No changes..."
+      #     else
+      #       git commit -m "[CI] build hugo static site"
+      #       git push
+      #     fi
 
