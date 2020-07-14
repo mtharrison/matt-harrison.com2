@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Hugo Build
-        run: hugo
+        run: ls -al && hugo
 
       - name: Commit to master
         run: |
