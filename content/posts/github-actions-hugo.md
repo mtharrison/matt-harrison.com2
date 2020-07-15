@@ -9,6 +9,8 @@ GitHub pages hosts a static site straight off your repo, either via a specific `
 
 I've been looking into [GitHub actions](https://github.com/features/actions) recently and doing quite a bit of devopsy stuff at [work](https://github.com/features/actions) so I thought this might be another ripe opportunity to take advantage of automation to make my life just that little bit easier.
 
+An added advantage to letting GitHub handle this is that I can then write or edit blog posts on the go via the GitHub UI, when I don't easily have access to my laptop and usual build environment.
+
 When I push to `master` of my blog repo, I want a workflow to do the following for me:
 
 1. Build latest static site built with a specific version of Hugo
@@ -156,6 +158,8 @@ In this final step, I set up some config so we can actually change things in `gi
           fi
 ```
 Once the changes are pushed up to `gh-pages` GitHub will take care of deploying the new static files to my site here.
+
+You may wonder if the `git push` that happens within the workflow will trigger another build and result in an infinite loop. Thankfully the GitHub folks have thought about that and any [events triggered from your workflow will not in turn triggers new workflows](https://docs.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token#using-the-github_token-in-a-workflow).
 
 So in summary I can just add new posts to my blog as `.md` files, push them to `master` and GitHub will take care of building my static site and redeploying it all within a matter of seconds. And all happening automatically via GitHub Actions and GitHub Pages 🚀
 
