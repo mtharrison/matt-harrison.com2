@@ -31,4 +31,4 @@ customJs = ["js/blog.js"]
     name = "Resume"
     weight = 100
     identifier = "resume"
-    url = "https://matt-harrison.com/resume.pdf"
+    url = "https://docs.google.com/document/d/1bn7RvqlwSuPQTESZ0_2tVBr0EPw2vc1HhUo6eHf2W08/edit"
