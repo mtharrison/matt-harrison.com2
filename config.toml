@@ -31,4 +31,4 @@ customJs = ["js/blog.js"]
     name = "Resume"
     weight = 100
     identifier = "resume"
-    url = "https://zety.com/mycv/mharrison"
+    url = "https://matt-harrison.com/resume.pdf"
