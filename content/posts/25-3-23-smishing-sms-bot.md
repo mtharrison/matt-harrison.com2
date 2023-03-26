@@ -67,7 +67,7 @@ The code to implement the entire flow is embarrassingly little:
 
 [Take a look at the repo on GitHub if you're interested](https://github.com/mtharrison/gpt-4-smishing-sms-bot).
 
-Here are a few screenshots of my interactions with this SMS bot using some well-known smishing attacks, an an innocent message from Mum 😀
+Here are a few screenshots of my interactions with this SMS bot using some well-known smishing attacks, an innocent message from Mum 😀
 
 ![smishing 1](/images/25-3-23-smishing-sms-bot/smishing1.jpg)
 ![smishing 2](/images/25-3-23-smishing-sms-bot/smishing2.jpg)
