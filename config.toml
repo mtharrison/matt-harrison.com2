@@ -32,3 +32,6 @@ customJs = ["js/blog.js"]
     weight = 100
     identifier = "resume"
     url = "https://docs.google.com/document/d/1bn7RvqlwSuPQTESZ0_2tVBr0EPw2vc1HhUo6eHf2W08/edit"
+
+[markup.goldmark.renderer]
+unsafe= true
