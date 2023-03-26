@@ -1,0 +1,9 @@
+{
+  "grammarly.selectors": [
+    {
+      "language": "markdown",
+      "scheme": "file",
+      "pattern": "content/posts/25-3-23-smishing-sms-bot.md"
+    }
+  ]
+}
