@@ -77,3 +77,5 @@ Here are a few screenshots of my interactions with this SMS bot using some well-
 ## What's next?
 
 I'd like to understand how useful this service would be to people on a large scale. If it is I can spend some more time building it into an actual product. If you think you or a loved one would find this helpful please reach out to me at hi@matt-harrison.com and I'd love to hear your thoughts.
+
+{{ template "_internal/disqus.html" . }}
