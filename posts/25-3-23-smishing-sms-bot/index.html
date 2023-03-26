@@ -16,7 +16,7 @@
 However, there is another type of spam that is on the rise and seems to be poorly addressed by Big Tech until now.">
 <meta itemprop="datePublished" content="2023-03-26T21:51:00&#43;01:00" />
 <meta itemprop="dateModified" content="2023-03-26T21:51:00&#43;01:00" />
-<meta itemprop="wordCount" content="1039">
+<meta itemprop="wordCount" content="1052">
 
 
 
@@ -153,7 +153,8 @@ However, there is another type of spam that is on the rise and seems to be poorl
 <p>I recently got access to the GPT-4 API and from initial experiments was impressed with the advance made compared to the earlier models. I decided to try this out for the Smishing detector/educator use case.</p>
 <p>The first thing I decided to try was to see how well GPT-4 performed as a simple binary classifier against a public dataset of SMS phishing messages. I used this <a href="https://www.kaggle.com/datasets/uciml/sms-spam-collection-dataset">SMS Spam Collection Dataset</a> from Kaggle. It&rsquo;s quite an unbalanced dataset with 13% spam and 87% ham and from eyeballing the text there seems to be a lot of Colloquial Singaporean English but it&rsquo;s a good start.</p>
 <p>You can train a classifier on this dataset and get very good accuracy with many methods, such as naive Bayes, Random Forest etc but I was curious what metrics I could get simply by asking GPT-4 is this spam or ham?</p>
-<p>You can see the Colab notebook where I ran this test here: <a href="https://colab.research.google.com/drive/1-lzIg7_FENR95uFet7-ZgSjXTq3-U96w?usp=sharing">https://colab.research.google.com/drive/1-lzIg7_FENR95uFet7-ZgSjXTq3-U96w?usp=sharing</a>. You will need an OpenAI API key and GPT-4 access.</p>
+<p>You can see the Colab notebook where I ran this test here: <a href="https://colab.research.google.com/drive/1-lzIg7_FENR95uFet7-ZgSjXTq3-U96w?usp=sharing">https://colab.research.google.com/drive/1-lzIg7_FENR95uFet7-ZgSjXTq3-U96w?usp=sharing</a>. You will need an OpenAI API key and GPT-4 access.
+<strong>Note:</strong> This cost me $9.42 on the API to run the full dataset.</p>
 <h3 id="results">Results</h3>
 <table>
 <thead>
