@@ -63,16 +63,16 @@ I used [Next.js](https://nextjs.org/) for this because coupled with [`vercel dep
 
 The code to implement the entire flow is embarrassingly little:
 
-<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fmtharrison%2Fgpt-4-smishing-sms-bot%2Fblob%2Fmain%2Fsrc%2Fpages%2Fapi%2Fhandler.ts&style=github-dark&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></script>
+![snippet](/images/25-3-23-smishing-sms-bot/snippet.png)
 
 [Take a look at the repo on GitHub if you're interested](https://github.com/mtharrison/gpt-4-smishing-sms-bot).
 
 Here are a few screenshots of my interactions with this SMS bot using some well-known smishing attacks, an innocent message from Mum 😀
 
-![smishing 1](/images/25-3-23-smishing-sms-bot/smishing1.jpg)
-![smishing 2](/images/25-3-23-smishing-sms-bot/smishing2.jpg)
-![smishing 3](/images/25-3-23-smishing-sms-bot/smishing3.jpg)
-![smishing 4](/images/25-3-23-smishing-sms-bot/smishing4.jpg)
+<img src="/images/25-3-23-smishing-sms-bot/smishing1.jpg" alt="smishing" width="300">
+<img src="/images/25-3-23-smishing-sms-bot/smishing2.jpg" alt="smishing" width="300">
+<img src="/images/25-3-23-smishing-sms-bot/smishing3.jpg" alt="smishing" width="300">
+<img src="/images/25-3-23-smishing-sms-bot/smishing4.jpg" alt="smishing" width="300">
 
 ## What's next?
 
