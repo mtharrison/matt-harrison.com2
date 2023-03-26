@@ -1,6 +1,6 @@
 ---
 title: "Stay Ahead of Scammers: A GPT-4 powered SMS bot to Keep You Safe from Phishing Texts"
-date: 2023-03-27T21:51:00+01:00
+date: 2023-03-26T21:51:00+01:00
 ---
 
 ## The problem of SMS Phishing (Smishing)
