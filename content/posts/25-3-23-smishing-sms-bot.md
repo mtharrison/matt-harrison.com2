@@ -55,7 +55,7 @@ To allow people to access this model as a service in a simple way, the easiest i
 
 I used [ClickSend](https://dashboard.clicksend.com/#/dashboard/home) to build a quick prototype of this, it's very easy to get set up and test SMS integrations, although their JavaScript tooling has something to be desired.
 
-> When I first started testing this I had my account blocked on ClickSend due to the content of the messages I was sending it, pretty understanably. However I reached out via email and I was very quickly reinstated when I explained my use case.
+> When I first started testing this I had my account blocked on ClickSend due to the content of the messages I was sending it, pretty understandably. However I reached out via email and I was very quickly reinstated when I explained my use case.
 
 I simply have any inbound SMS on a number I purchased (in my case a UK mobile number) sent to an endpoint. In that endpoint, I read the sender's number and message. I then call the GPT-4 chat completion endpoint and when I receive the result, I forward it to the user.
 
