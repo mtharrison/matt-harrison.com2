@@ -3,7 +3,7 @@ title: "Stay Ahead of Scammers: A GPT-4 powered SMS bot to Keep You Safe from Ph
 date: 2023-03-26T21:51:00+01:00
 ---
 
-## The problem of SMS Phishing (Smishing)
+## The problem of SMS Phishing (AKA Smishing)
 
 Email spam has been a solved problem for at least 10 years. As any user of Gmail will tell you, the only time they see spam emails is the occasional time they curiously dip into their spam folder and chuckle at the all-to-obvious clichés used by scammers.
 
