@@ -64,3 +64,9 @@ I used [Next.js](https://nextjs.org/) for this because coupled with [`vercel dep
 The code to implement the entire flow is embarrassingly little:
 
 <script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fmtharrison%2Fgpt-4-smishing-sms-bot%2Fblob%2Fmain%2Fsrc%2Fpages%2Fapi%2Fhandler.ts&style=github-dark&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></script>
+
+[Take a look at the repo on GitHub if you're interested](https://github.com/mtharrison/gpt-4-smishing-sms-bot).
+
+## What's next?
+
+I'd like to understand how useful this service would be to people on a large scale. If it is I can spend some more time building it into an actual product. If you think you or a loved one would find this helpful please reach out to me at hi@matt-harrison.com and I'd love to hear your thoughts.
