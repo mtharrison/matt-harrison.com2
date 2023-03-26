@@ -8,7 +8,7 @@ enableEmoji = true
 [params]
 author = "Matt Harrison"
 profilePicture = "images/profile.jpg"
-description = "Software developer and author based in the UK"
+description = "Software and Machine Learning Engineer based in the UK"
 
 copyright = "Matt Harrison"
 license = "CC BY-SA 4.0"
