@@ -15,6 +15,7 @@ license = "CC BY-SA 4.0"
 licenseURL = "https://creativecommons.org/licenses/by-sa/4.0"
 
 themeColor = "#141b19"
+disqusShortname = 'matt-harrison-1'
 
 customCss = ["css/blog.css"]
 customJs = ["js/blog.js"]
