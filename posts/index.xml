@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Matt Harrison</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 14 Jul 2020 00:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Sun, 26 Mar 2023 21:51:00 +0100</lastBuildDate>
     
 	<atom:link href="https://matt-harrison.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Stay Ahead of Scammers: A GPT-4 powered SMS bot to Keep You Safe from Phishing Texts</title>
+      <link>https://matt-harrison.com/posts/25-3-23-smishing-sms-bot/</link>
+      <pubDate>Sun, 26 Mar 2023 21:51:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/25-3-23-smishing-sms-bot/</guid>
+      <description>The problem of SMS Phishing (Smishing) Email spam has been a solved problem for at least 10 years. As any user of Gmail will tell you, the only time they see spam emails is the occasional time they curiously dip into their spam folder and chuckle at the all-to-obvious clichés used by scammers.
+However, there is another type of spam that is on the rise and seems to be poorly addressed by Big Tech until now.</description>
+    </item>
     
     <item>
       <title>Automating this Hugo Blog with GitHub Actions</title>

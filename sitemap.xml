@@ -3,12 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://matt-harrison.com/posts/github-actions-hugo/</loc>
-    <lastmod>2020-07-14T00:00:00+01:00</lastmod>
+    <loc>https://matt-harrison.com/posts/</loc>
+    <lastmod>2023-03-26T21:51:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://matt-harrison.com/posts/</loc>
+    <loc>https://matt-harrison.com/posts/25-3-23-smishing-sms-bot/</loc>
+    <lastmod>2023-03-26T21:51:00+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://matt-harrison.com/posts/github-actions-hugo/</loc>
     <lastmod>2020-07-14T00:00:00+01:00</lastmod>
   </url>
   
