@@ -39,7 +39,7 @@ You can see the Colab notebook where I ran this test here: https://colab.researc
 
 ### Confusion Matrix
 
-![Bilby Stampede](../../static/images/25-3-23-smishing-sms-bot/confusion-matrix.png)
+![Bilby Stampede](/images/25-3-23-smishing-sms-bot/confusion-matrix.png)
 
 Although this is without a doubt, not the best-performing classifier one could build for the dataset, let's remember there was no training step here. Not even few-shot prompting. We simply prompted the model "Is this Spam". In the case of spam recognition, sensitivity is the important metric, we want to ensure actual spam is recognised as spam and 98.1% is a very good result.
 
@@ -66,6 +66,13 @@ The code to implement the entire flow is embarrassingly little:
 <script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fmtharrison%2Fgpt-4-smishing-sms-bot%2Fblob%2Fmain%2Fsrc%2Fpages%2Fapi%2Fhandler.ts&style=github-dark&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></script>
 
 [Take a look at the repo on GitHub if you're interested](https://github.com/mtharrison/gpt-4-smishing-sms-bot).
+
+Here are a few screenshots of my interactions with this SMS bot using some well-known smishing attacks, an an innocent message from Mum 😀
+
+![smishing 1](/images/25-3-23-smishing-sms-bot/smishing1.jpg)
+![smishing 2](/images/25-3-23-smishing-sms-bot/smishing2.jpg)
+![smishing 3](/images/25-3-23-smishing-sms-bot/smishing3.jpg)
+![smishing 4](/images/25-3-23-smishing-sms-bot/smishing4.jpg)
 
 ## What's next?
 
