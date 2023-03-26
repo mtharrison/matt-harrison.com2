@@ -16,7 +16,7 @@
 Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno to the JS world in a talk titled 10 things I regret about node.">
 <meta itemprop="datePublished" content="2019-05-29T19:00:00&#43;01:00" />
 <meta itemprop="dateModified" content="2019-05-29T19:00:00&#43;01:00" />
-<meta itemprop="wordCount" content="2245">
+<meta itemprop="wordCount" content="2273">
 
 
 
@@ -147,7 +147,44 @@ Deno was created by Ryan Dahl, the also-creator of Node.js. Ryan introduced Deno
 <p>I&rsquo;m hoping to contribute to the Deno project because I think it will be a good way to learn more about Rust on an actual project with real-world complexity, it also seems like a lot of fun. To dip my toes in before I try to pick up a real issue, I decided that I&rsquo;d try to add a couple of dummy &ldquo;features&rdquo; to Deno. It was quite a fun and enlightening exploration so I wanted to share it with the hope that it will also be useful for any other would-be contributors to Deno in the future.</p>
 <h2 id="architecture-of-deno">Architecture of Deno</h2>
 <p>Many parallels can be drawn between Deno&rsquo;s architecture and how a Unix operating system is organised. In Deno, there is an unprivileged user space, where code is written in TypeScript then compiled and executed in a JavaScript sandbox by V8. To interact with the system, the user space code must dispatch messages (like OS system calls) to the privileged side, which is written in Rust and linked in with V8. This comparison isn&rsquo;t just my own observation but actually stated in the <a href="https://deno.land/manual.html">Deno manual</a>:</p>
-<!-- raw HTML omitted -->
+<table>
+<thead>
+<tr>
+<th style="text-align:right;"><strong>Linux</strong></th>
+<th style="text-align:left;"><strong>Deno</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">Processes</td>
+<td style="text-align:left;">Web Workers</td>
+</tr>
+<tr>
+<td style="text-align:right;">Syscalls</td>
+<td style="text-align:left;">Ops</td>
+</tr>
+<tr>
+<td style="text-align:right;">File descriptors (fd)</td>
+<td style="text-align:left;"><a href="#resources">Resource ids (rid)</a></td>
+</tr>
+<tr>
+<td style="text-align:right;">Scheduler</td>
+<td style="text-align:left;">Tokio</td>
+</tr>
+<tr>
+<td style="text-align:right;">Userland: libc++ / glib / boost</td>
+<td style="text-align:left;">deno_std</td>
+</tr>
+<tr>
+<td style="text-align:right;">/proc/\$\$/stat</td>
+<td style="text-align:left;"><a href="#metrics">Deno.metrics()</a></td>
+</tr>
+<tr>
+<td style="text-align:right;">man pages</td>
+<td style="text-align:left;">deno types</td>
+</tr>
+</tbody>
+</table>
 <p>This can be contrasted to the situation we have in Node.js where the interface between JS and native code is a lot less, contained, shall we say. Native modules can punch holes into JavaScript from anywhere, inserting functions which have access to your system into the global scope of your scripts. Suddenly the code running in your sandbox isn&rsquo;t really all that sandboxed at all. The benefits of Deno&rsquo;s approach is that it&rsquo;s easier to keep track of what your programs are doing by using a single system call interface, including the resources they&rsquo;re using like files and sockets. It also makes it easy to apply capability-based permissions on executing scripts. Deno defaults scripts to having no access to things like network, host filesystem etc. You must give these permissions explicitly by passing flags e.g. <code>--allow-net</code> and <code>--allow-write</code>.</p>
 <p>Security approach isn&rsquo;t the only difference between Node and Deno, <a href="https://deno.land/manual.html">the manual</a> is a great place to learn more.</p>
 <p>Deno provides the same asynchronous non-blocking I/O as default that Node.js does. Where Node.js relies on <a href="https://github.com/libuv/libuv">libuv</a>, Deno makes uses of the evolving async I/O stack in Rust composed of <a href="https://github.com/tokio-rs/tokio">Tokio</a> and <a href="https://github.com/tokio-rs/mio">Mio</a>.</p>

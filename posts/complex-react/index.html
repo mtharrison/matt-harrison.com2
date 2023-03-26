@@ -14,10 +14,10 @@
 <meta itemprop="name" content="Building a complex web component with Facebook&#39;s React Library">
 <meta itemprop="description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
 React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
-I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator.">
+ I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator.">
 <meta itemprop="datePublished" content="2014-01-03T00:00:00&#43;01:00" />
 <meta itemprop="dateModified" content="2014-01-03T00:00:00&#43;01:00" />
-<meta itemprop="wordCount" content="721">
+<meta itemprop="wordCount" content="1321">
 
 
 
@@ -27,13 +27,13 @@ I&rsquo;m going to show you how to create a complex, interactive web component w
 <meta name="twitter:title" content="Building a complex web component with Facebook&#39;s React Library"/>
 <meta name="twitter:description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
 React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
-I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator."/>
+ I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator."/>
 
 
 <meta property="og:title" content="Building a complex web component with Facebook&#39;s React Library" />
 <meta property="og:description" content="Edit (12-2016): This article has been updated for React 0.14 and ES2015
 React looks set to be the hot front end technology of 2014 with some even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:
-I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator." />
+ I&rsquo;m going to show you how to create a complex, interactive web component with React. To this end, I will be creating a 5 band resistance calculator." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://matt-harrison.com/posts/complex-react/" />
 <meta property="article:published_time" content="2014-01-03T00:00:00+01:00" />
@@ -142,12 +142,12 @@ I&rsquo;m going to show you how to create a complex, interactive web component w
   <h1>Building a complex web component with Facebook&#39;s React Library</h1>
 
   <div class="post-date">
-    <time datetime="2014-01-03T00:00:00&#43;0100">Jan 3, 2014</time> &middot; 4 min read
+    <time datetime="2014-01-03T00:00:00&#43;0100">Jan 3, 2014</time> &middot; 7 min read
   </div>
 
   <p><strong>Edit (12-2016):</strong> This article has been updated for React 0.14 and ES2015</p>
 <p>React looks set to be the hot front end technology of 2014 with <a href="https://twitter.com/floydophone/status/418207644919545856">some</a> even calling 2014 the Year of React. So I thought I&rsquo;d introduce it with a tutorial and hopefully learn something myself too. Here&rsquo;s what we&rsquo;ll be building:</p>
-<!-- raw HTML omitted -->
+<iframe src="http://mtharrison.github.io/react-resistance-calculator/" style="height: 550px; width: 700px; border: none; display:block; margin:auto" ></iframe>
 <p>I&rsquo;m going to show you how to create a complex, interactive web component with <a href="facebook.github.io/react/">React</a>. To this end, I will be creating a 5 band resistance calculator. This component will consist of an SVG diagram of a electronic resistor component with coloured bands, indicators of resistance and tolerance and dropdowns for changing the colours of the 5 bands.</p>
 <p>Initially I wanted to use SVG gradients for the resistor fills, but they&rsquo;re not supported by React/JSX (<strong>Update:</strong> I&rsquo;ve opened a <a href="https://github.com/facebook/react/pull/819">pull request</a> to fix this).</p>
 <p>Firstly though, let&rsquo;s talk a little about <a href="facebook.github.io/react/">React</a>.</p>
@@ -180,38 +180,255 @@ I&rsquo;m going to show you how to create a complex, interactive web component w
 <p>Now on to the fun stuff. I will be making the calculator by combining several subcomponents together. Below is a diagram of the different components that will make up the calculator:</p>
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/resistance-calculator-annotated.png" alt="Subcomponents"></p>
 <p>Here&rsquo;s how the hierarchy looks in JSX:</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-markup"> &lt;ResistanceCalculator&gt;
+    &lt;OhmageIndicator /&gt;
+    &lt;ToleranceIndicator /&gt;
+    &lt;SVGResistor  /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;BandSelector /&gt;
+    &lt;ResetButton /&gt;
+&lt;/ResistanceCalculator&gt;</code></pre>
 <p>I&rsquo;ll post the code for each component here with a small discussion of what&rsquo;s going on inside.</p>
 <h4 id="componentsohmageindicatorjs">components/OhmageIndicator.js</h4>
 <p>This component displays the actual calculated ohmage of the resistor. Notice it doesn&rsquo;t actually do the calculation, a higher level component takes care of that. The only logic in this component is concerned with rendering an appropriate unit of resistance, be it Ω, KΩ or MΩ.</p>
 <p>This component only expects 1 <code>prop</code> to be passed, <code>resistance</code>.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+const OhmageIndicator = ({ resistance }) => {
+    const formatResistance = () => {
+        const r = parseFloat(resistance);
+        const MILLION = 1000000;
+        const THOUSAND = 1000;
+
+        if (r > MILLION)
+            return(r / MILLION).toFixed(1) + "MΩ";
+        if(r > THOUSAND)
+            return (r / THOUSAND).toFixed(1) + "KΩ";
+        return r.toFixed(1) + "Ω";
+    }
+    return (
+        &lt;p id="resistor-value"&gt;
+            {formatResistance()}
+        &lt;/p&gt;
+    );
+};
+
+OhmageIndicator.propTypes = {
+    resistance: React.PropTypes.number.isRequired
+};
+
+export default OhmageIndicator</code></pre>
 <h4 id="componentstoleranceindicatorjs">components/ToleranceIndicator.js</h4>
 <p>Similar to the OhmageIndicator, this component isn&rsquo;t very smart, it just takes a numeric value as a <code>prop</code> and shows it as a ±% or shows nothing if the tolerance is 0.</p>
 <p>The function <code>printTolerance()</code> is acting like a view helper in a templating language, taking a data model and prettifying it for ouput.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+const ToleranceIndicator = ({ tolerance }) => {
+    const formatTolerance = () => {
+        return tolerance === 0 ?
+            "" :
+            "±" + tolerance + "%";
+    };
+    return (
+        &lt;p id="tolerance-value"&gt;
+            {formatTolerance()}
+        &lt;/p&gt;
+    );
+};
+
+ToleranceIndicator.propTypes = {
+    tolerance: React.PropTypes.number.isRequired
+};
+
+export default ToleranceIndicator;</code></pre>
 <h4 id="componentssvgresistorjs">components/SVGResistor.js</h4>
 <p>This component dynamically renders an SVG drawing of the resistor. It has a method to translate a band&rsquo;s numeric value to its corresponding colour via an object passed in as a <code>prop</code>.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React from 'react';
+
+const SVGResistor = ({ bands, bandOptions }) => {
+    const bandPositions = [70,100,130,160,210];
+    return (
+        &lt;svg width={300} height={100} version="1.1" xmlns="http://www.w3.org/2000/svg"&gt;
+            &lt;rect x={0} y={26} rx={5} width={300} height={7} fill="#d1d1d1" /&gt;
+            &lt;rect x={50} y={0} rx={15} width={200} height={57} fill="#FDF7EB" /&gt;
+            {bands.map((b, i) =>  (
+                &lt;rect
+                    key={i}
+                    x={bandPositions[i]}
+                    width={7}
+                    height={57}
+                    fill={bandOptions[b].color}
+                /&gt;
+            ))}
+        </svg>
+    );
+};
+
+SVGResistor.propTypes = {
+    bands: React.PropTypes.array.isRequired,
+    bandOptions: React.PropTypes.array.isRequired
+};
+
+export default SVGResistor;
+</code></pre>
 <h4 id="componentsbandselectorjs">components/BandSelector.js</h4>
 <p>This renders a select menu. To communicate changes back to the owner, the owner has passed a callback as a <code>prop</code>, thus creating a line of communication back to the owner. The component will call that callback with some arguments to notify the owner it needs to update its state.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+class BandSelector extends Component {
+    constructor(props) {
+        super(props);
+    }
+    handleChange() {
+        this.props.onChange(this.props.band, parseInt(this.refs.menu.value));
+    }
+    render(){
+        const { band, options, value } = this.props;
+        return (
+            &lt;div className="band-option"&gt;
+                &lt;label&gt;Band {band + 1}&lt;/label&gt;
+                &lt;select ref="menu" value={value} onChange={::this.handleChange}&gt;
+                {options.map((o, i) => (
+                    &lt;option key={i} value={i}>{o.label}</option>
+                ))}
+                &lt;/select&gt;
+            &lt;/div&gt;
+        );
+    }
+};
+
+BandSelector.propTypes = {
+    onChange: React.PropTypes.func.isRequired,
+    band: React.PropTypes.number.isRequired,
+    options: React.PropTypes.array.isRequired,
+    value: React.PropTypes.number.isRequired
+};
+
+export default BandSelector;
+</code></pre>
 <h4 id="componentsindexjs-resistancecalculator">components/index.js (ResistanceCalculator)</h4>
 <p>This component is the glue that holds the calculator together and manages all the <code>state</code>, passes <code>props</code> and performs the resistance calculation.</p>
 <p>When the state in this component changes, and props that have been passed will also update the children&rsquo;s DOM.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React, { Component } from 'react';
+
+import BandSelector from './BandSelector';
+import OhmageIndicator from './OhmageIndicator';
+import ResetButton from './ResetButton';
+import SVGResistor from './SVGResistor';
+import ToleranceIndicator from './ToleranceIndicator';
+
+class ResistanceCalculator extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            bands: props.config.bands.map(v => v.value || 0),
+            resistance: 0,
+            tolerance: 0
+        };
+    }
+    getMultiplier() {
+        if(this.state.bands[3] == 10)
+            return 0.1;
+        if(this.state.bands[3] == 11)
+            return 0.01;
+        return Math.pow(10, this.state.bands[3]);
+
+    }
+    calculateResistance() {
+        return this.getMultiplier() *
+            ((100 * this.state.bands[0]) +
+            (10  * this.state.bands[1]) +
+            (1   * this.state.bands[2]));
+    }
+    updateBandState(band, value) {
+        const { bandOptions } = this.props.config;
+        const { bands } = this.state;
+        bands[band] = value;
+        this.setState({
+            bands,
+            resistance: this.calculateResistance(),
+            tolerance: bandOptions[this.state.bands[4]].tolerance
+        });
+    }
+    reset() {
+        this.setState({
+            bands: [0,0,0,0,0],
+            resistance: 0,
+            tolerance: 0
+        });
+    }
+    render() {
+        const { bandOptions, bands: bandsConfig } = this.props.config;
+        const { bands, resistance, tolerance } = this.state;
+        return (
+            &lt;div&gt;
+                &lt;SVGResistor bands={bands} bandOptions={bandOptions} /&gt;
+                &lt;OhmageIndicator resistance={resistance} /&gt;
+                &lt;ToleranceIndicator tolerance={tolerance} /&gt;
+                {bands.map((b, i) => {
+                    const options = bandOptions.filter((b, j) => (
+                        bandsConfig[i].omitOptions.indexOf(j) === -1
+                    ));
+                    return (
+                        &lt;BandSelector
+                            options={options}
+                            key={i}
+                            band={i}
+                            value={b}
+                            onChange={::this.updateBandState}
+                        /&gt;
+                    );
+                })}
+                &lt;ResetButton onClick={::this.reset}/&gt;
+            &lt;/div&gt;
+        );
+    }
+};
+
+ResistanceCalculator.propTypes = {
+    config: React.PropTypes.object.isRequired
+};
+
+export default ResistanceCalculator;
+</code></pre>
 <p>Lastly to instantiate the component and mount it to the DOM, passing in some configuration:</p>
 <h4 id="mainjs">main.js</h4>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class="language-javascript">import React, { Component } from 'react';
+import { render } from 'react-dom';
+
+import ResistanceCalculator from './components/ResistanceCalculator';
+
+const config = {
+    bandOptions: [
+        { tolerance: 0, color: "black", label: "None" },
+        { tolerance: 1, color: "brown", label: "Brown"},
+        { tolerance: 2, color: "red", label: "Red"},
+        { color: "orange", label: "Orange"},
+        { color: "yellow", label: "Yellow"},
+        { tolerance: 0.5, color: "green", label: "Green"},
+        { tolerance: 0.25, color: "blue", label: "Blue"},
+        { tolerance: 0.10, color: "violet", label: "Violet"},
+        { tolerance: 0.05, color: "grey", label: "Grey"},
+        { color: "white", label: "White"},
+        { tolerance: 5, color: "#FFD700", label: "Gold"},
+        { tolerance: 10, color: "#C0C0C0", label: "Silver"}
+    ],
+    bands: [
+        { omitOptions: [10,11] },
+        { omitOptions: [10,11] },
+        { omitOptions: [10,11] },
+        { omitOptions: [8,9] },
+        { omitOptions: [3,4,9] }
+    ]
+};
+
+render(&lt;ResistanceCalculator config={config} /&gt;, document.getElementById('container'));
+</code></pre>
 <h3 id="the-result">The result</h3>
-<!-- raw HTML omitted -->
+<iframe src="http://mtharrison.github.io/react-resistance-calculator/" style="height: 550px; width: 700px; border: none; display:block; margin:auto" ></iframe>
 <p>Please feel free to comment with suggestions or improvements.</p>
 
 </div>

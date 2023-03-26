@@ -16,7 +16,7 @@
 I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abstracts away all the processing you need to start getting commands from your remote. It also has decoders for the most popular IR protocols which will strip out any signal headers and return just the data bits.">
 <meta itemprop="datePublished" content="2013-10-27T00:00:00&#43;01:00" />
 <meta itemprop="dateModified" content="2013-10-27T00:00:00&#43;01:00" />
-<meta itemprop="wordCount" content="342">
+<meta itemprop="wordCount" content="570">
 
 
 
@@ -139,7 +139,7 @@ I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abs
   <h1>Capturing infrared packets with Arduino and plotting them with HTML5 canvas</h1>
 
   <div class="post-date">
-    <time datetime="2013-10-27T00:00:00&#43;0100">Oct 27, 2013</time> &middot; 2 min read
+    <time datetime="2013-10-27T00:00:00&#43;0100">Oct 27, 2013</time> &middot; 3 min read
   </div>
 
   <p>I had an old DVD player lying around that wasn&rsquo;t working anymore so I stripped the infrared sensor from it (Note this is not a standard IR phototransistor/diode, it has a modulated, logic-level output).</p>
@@ -156,20 +156,112 @@ I found the fantastic Arduino-IRremote library by Ken Shirriff. This library abs
 a final 562.5µs pulse burst to signify the end of message transmission.</li>
 </ul>
 <p>So the total data bits are 32 and the data package may look like this:</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class='language-c'>∨ device address  ∨ command
+10110100 01001011 11100111 00011000
+         ∧  ~address       ∧ ~command</code></pre>
 <p>I wired the sensor with my arduino as following:</p>
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/breadboard.png" alt="Breadboard"></p>
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/setup2.JPG" alt="Wiring"></p>
 <p>I then uploaded the following sketch to the Arduino (this is almost exactly the same as the example sketch provided with the library except I write the data as binary rather than hex.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class='language-c'>#include <IRremote.h>
+int RECV_PIN = 11;
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
+void setup()
+{
+  Serial.begin(9600);
+  irrecv.enableIRIn();
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    Serial.println(results.value, BIN);
+    irrecv.resume();
+  }
+}</code></pre>
 <p>I can now start collecting commands from the sensor but I need something to do with them. I used the great <a href="https://github.com/voodootikigod/node-serialport">node-serialport</a> module for Node to collect data from the serial port. I also used the <a href="http://expressjs.com/">Express framework</a> and <a href="http://socket.io/">Socket.IO</a> to create a persistent connection to a webpage. The server code for Node is below:</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class='language-javascript'>var serialport = require("serialport");
+var SerialPort = serialport.SerialPort
+var serialPort = new SerialPort("/dev/tty.usbmodem1411", {
+	parser: serialport.parsers.readline("\n"),
+	baudrate: 9600
+});
+
+serialPort.open(function () {
+	var app = require('express')()
+	, server = require('http').createServer(app)
+	, io = require('socket.io').listen(server);
+
+	server.listen(8080);
+
+	app.get('/', function (req, res) {
+		res.sendfile(__dirname + '/index.html');
+	});
+
+	io.sockets.on('connection', function (socket) {
+		serialPort.on('data', function(data) {
+			io.sockets.emit('data', { data: data});
+		});
+	});
+});</code></pre>
 <p>When the websocket client recieves a <code>data</code> event, it passes the data to a javascript function which then draws a logic chart on the screen using canvas, showing the bits recieved from the remote. This has the protocol headers stripped and is just the command.</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<pre><code class='language-javascript'>//Takes a string like 101010001010
+function drawChart(string){
+
+		ctx.strokeStyle = '#ff0000';
+		ctx.clearRect(0, 0, 960, 360);
+		ctx.beginPath();
+		ctx.lineWidth = 3;
+		ctx.moveTo(0,330);
+
+		var bits = string.split("");
+		var travel = Math.floor(960/string.length);
+
+		var lastBit = "30";
+		var x = 0;
+
+		for(var i in bits){
+			if(bits[i] === "1"){
+				if(lastBit === "1"){
+					ctx.lineTo(x+travel, 30);
+					x = x + travel;
+					ctx.stroke();
+				} else {
+					ctx.lineTo(x, 30);
+					ctx.lineTo(x+travel, 30);
+					x = x + travel;
+					ctx.stroke();
+				}
+			} else {
+				if(lastBit === "1"){
+					ctx.lineTo(x, 330);
+					ctx.lineTo(x+travel, 330);
+					x = x + travel;
+					ctx.stroke();
+				} else {
+					ctx.lineTo(x+travel, 330);
+					x = x + travel;
+					ctx.stroke();
+				}
+			}
+
+			ctx.font = "bold 16px Menlo";
+			ctx.fillText(bits[i], x-23, 355);
+			ctx.fillText(bits[i], x-23, 15);
+
+			lastBit = bits[i];
+		}
+		ctx.strokeStyle = '#000000';
+
+		ctx.lineWidth = 0.5;
+		for(var i in bits){
+			ctx.moveTo(travel * i,360);
+			ctx.lineTo(travel * i, 0);
+		}
+
+		ctx.stroke();
+	};</code></pre>
 <p><img src="https://s3-eu-west-1.amazonaws.com/mattharrison/plot.png" alt="Logic plot"></p>
 <p>When I have a IR LED I can start replaying these commands and switching my TV on and off through the web, I&rsquo;ll post updates of this when I get round to it.</p>
 

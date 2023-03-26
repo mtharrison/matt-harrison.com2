@@ -16,7 +16,7 @@
 However, there is another type of spam that is on the rise and seems to be poorly addressed by Big Tech until now.">
 <meta itemprop="datePublished" content="2023-03-26T21:51:00&#43;01:00" />
 <meta itemprop="dateModified" content="2023-03-26T21:51:00&#43;01:00" />
-<meta itemprop="wordCount" content="910">
+<meta itemprop="wordCount" content="934">
 
 
 
@@ -186,7 +186,7 @@ However, there is another type of spam that is on the rise and seems to be poorl
 </tbody>
 </table>
 <h3 id="confusion-matrix">Confusion Matrix</h3>
-<p><img src="../../static/images/25-3-23-smishing-sms-bot/confusion-matrix.png" alt="Bilby Stampede"></p>
+<p><img src="/images/25-3-23-smishing-sms-bot/confusion-matrix.png" alt="Bilby Stampede"></p>
 <p>Although this is without a doubt, not the best-performing classifier one could build for the dataset, let&rsquo;s remember there was no training step here. Not even few-shot prompting. We simply prompted the model &ldquo;Is this Spam&rdquo;. In the case of spam recognition, sensitivity is the important metric, we want to ensure actual spam is recognised as spam and 98.1% is a very good result.</p>
 <p>Another factor to consider is when we receive an SMS there is a human classifier in the form of our intuition, not to mention the recognition (or lack) of the sender&rsquo;s number. This stacked with the above GPT-4 classifier should create a robust filter which would mitigate the number of false negatives.</p>
 <h2 id="more-than-a-classifier">More than a classifier</h2>
@@ -200,8 +200,13 @@ However, there is another type of spam that is on the rise and seems to be poorl
 <p>I simply have any inbound SMS on a number I purchased (in my case a UK mobile number) sent to an endpoint. In that endpoint, I read the sender&rsquo;s number and message. I then call the GPT-4 chat completion endpoint and when I receive the result, I forward it to the user.</p>
 <p>I used <a href="https://nextjs.org/">Next.js</a> for this because coupled with <a href="https://vercel.com/"><code>vercel deploy</code></a> it&rsquo;s just the easiest, most pleasant way to stand up a web application in the current era in my opinion.</p>
 <p>The code to implement the entire flow is embarrassingly little:</p>
-<!-- raw HTML omitted -->
+<script src="https://emgithub.com/embed-v2.js?target=https%3A%2F%2Fgithub.com%2Fmtharrison%2Fgpt-4-smishing-sms-bot%2Fblob%2Fmain%2Fsrc%2Fpages%2Fapi%2Fhandler.ts&style=github-dark&type=code&showBorder=on&showLineNumbers=on&showFileMeta=on&showFullPath=on&showCopy=on"></script>
 <p><a href="https://github.com/mtharrison/gpt-4-smishing-sms-bot">Take a look at the repo on GitHub if you&rsquo;re interested</a>.</p>
+<p>Here are a few screenshots of my interactions with this SMS bot using some well-known smishing attacks, an an innocent message from Mum 😀</p>
+<p><img src="/images/25-3-23-smishing-sms-bot/smishing1.jpg" alt="smishing 1">
+<img src="/images/25-3-23-smishing-sms-bot/smishing2.jpg" alt="smishing 2">
+<img src="/images/25-3-23-smishing-sms-bot/smishing3.jpg" alt="smishing 3">
+<img src="/images/25-3-23-smishing-sms-bot/smishing4.jpg" alt="smishing 4"></p>
 <h2 id="whats-next">What&rsquo;s next?</h2>
 <p>I&rsquo;d like to understand how useful this service would be to people on a large scale. If it is I can spend some more time building it into an actual product. If you think you or a loved one would find this helpful please reach out to me at <a href="mailto:hi@matt-harrison.com">hi@matt-harrison.com</a> and I&rsquo;d love to hear your thoughts.</p>
 
