@@ -26,6 +26,7 @@ The first thing I decided to try was to see how well GPT-4 performed as a simple
 You can train a classifier on this dataset and get very good accuracy with many methods, such as naive Bayes, Random Forest etc but I was curious what metrics I could get simply by asking GPT-4 is this spam or ham?
 
 You can see the Colab notebook where I ran this test here: https://colab.research.google.com/drive/1-lzIg7_FENR95uFet7-ZgSjXTq3-U96w?usp=sharing. You will need an OpenAI API key and GPT-4 access.
+**Note:** This cost me $9.42 on the API to run the full dataset.
 
 ### Results
 
