@@ -17,7 +17,7 @@ In today’s fast-paced world, mental well-being is an area that demands attenti
 
 Having personal experience with Cognitive Behavioural Therapy, through personal therapy and via books, especially the great work of Dr David Burn's books such as Feeling Good and Feeling Great. I have found many of the exercises suggested within of great help to working on my own thinking patterns.
 
-<img src="/images/24-6-23-thoughtcoach/response.png" alt="response" width="300">
+<img src="/images/24-6-23-thoughtcoach/response.png" alt="response" width="600">
 
 ### The importance of catching and reframing negative thought patterns
 
@@ -165,8 +165,8 @@ Initial feedback from users pointed out that the application was overeager to ma
 
 To ameliorate this situation, a first check is performed to classify the input as either balanced, distorted or invalid. If the thought is balanced or invalid, a separate message informs the user of that.
 
-<img src="/images/24-6-23-thoughtcoach/balanced.png" alt="response" width="300">
-<img src="/images/24-6-23-thoughtcoach/invalid.png" alt="response" width="300">
+<img src="/images/24-6-23-thoughtcoach/balanced.png" alt="response" width="600">
+<img src="/images/24-6-23-thoughtcoach/invalid.png" alt="response" width="600">
 
 ## Opensource and The Future of ThoughtCoach
 
