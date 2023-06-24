@@ -3,6 +3,8 @@ title: "Transform Your Thoughts: Unveiling ThoughtCoach, the App that Reframes Y
 date: 2023-06-24T12:00:00+01:00
 ---
 
+<img src="/images/24-6-23-thoughtcoach/logo.png" alt="response" width="600">
+
 [See the open source Github repo](https://github.com/mtharrison/thoughtcoach)
 
 [Try the Online demo](https://thoughtcoach.app/)
