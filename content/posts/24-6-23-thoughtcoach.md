@@ -19,7 +19,7 @@ In today’s fast-paced world, mental well-being is an area that demands attenti
 
 Having personal experience with Cognitive Behavioural Therapy, through personal therapy and via books, especially the great work of Dr David Burn's books such as Feeling Good and Feeling Great. I have found many of the exercises suggested within of great help to working on my own thinking patterns.
 
-<img src="/images/24-6-23-thoughtcoach/response.png" alt="response" width="600">
+<img src="/images/24-6-23-thoughtcoach/response.png" alt="response">
 
 ### The importance of catching and reframing negative thought patterns
 
