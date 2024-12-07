@@ -1,6 +1,7 @@
 ---
 title: "Transform Your Thoughts: Unveiling ThoughtCoach, the App that Reframes Your Mindset"
 date: 2023-06-24T12:00:00+01:00
+draft: true
 ---
 
 <img src="/images/24-6-23-thoughtcoach/logo.png" alt="response" width="600">
