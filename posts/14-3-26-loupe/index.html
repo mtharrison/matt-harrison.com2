@@ -12,11 +12,13 @@
   
 
 <meta itemprop="name" content="Loupe: a lightweight local tracing dashboard for LLM apps">
-<meta itemprop="description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+<meta itemprop="description" content="View the repo on GitHub
+Install Loupe from npm
+When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
 Most of the time, when I am iterating on an agent locally, I do not want either of those things.">
 <meta itemprop="datePublished" content="2026-03-14T18:14:09&#43;00:00" />
 <meta itemprop="dateModified" content="2026-03-14T18:14:09&#43;00:00" />
-<meta itemprop="wordCount" content="799">
+<meta itemprop="wordCount" content="808">
 
 
 
@@ -24,12 +26,16 @@ Most of the time, when I am iterating on an agent locally, I do not want either 
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Loupe: a lightweight local tracing dashboard for LLM apps"/>
-<meta name="twitter:description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+<meta name="twitter:description" content="View the repo on GitHub
+Install Loupe from npm
+When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
 Most of the time, when I am iterating on an agent locally, I do not want either of those things."/>
 
 
 <meta property="og:title" content="Loupe: a lightweight local tracing dashboard for LLM apps" />
-<meta property="og:description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+<meta property="og:description" content="View the repo on GitHub
+Install Loupe from npm
+When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
 Most of the time, when I am iterating on an agent locally, I do not want either of those things." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://matt-harrison.com/posts/14-3-26-loupe/" />
@@ -145,6 +151,8 @@ Most of the time, when I am iterating on an agent locally, I do not want either 
   </div>
 
   <img src="/images/14-3-26-loupe/logo.svg" alt="Loupe logo" width="320">
+<p><a href="https://github.com/mtharrison/loupe">View the repo on GitHub</a></p>
+<p><a href="https://www.npmjs.com/package/@mtharrison/loupe">Install Loupe from npm</a></p>
 <p>When you are building with LLMs there is a very annoying tooling gap. At one end you have <code>console.log()</code> and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.</p>
 <p>Most of the time, when I am iterating on an agent locally, I do not want either of those things.</p>
 <p>I built Loupe for that middle ground. It is a lightweight local tracing dashboard for LLM applications and agent systems. It captures full request and response payloads, streaming chunks, tags and hierarchy context, then serves an inspector UI on <code>127.0.0.1</code>. There is no database, no containers, no external service and no persistence. Traces live in memory and disappear on restart.</p>
