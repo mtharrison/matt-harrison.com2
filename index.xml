@@ -12,6 +12,16 @@
     
     
     <item>
+      <title>Loupe: a lightweight local tracing dashboard for LLM apps</title>
+      <link>https://matt-harrison.com/posts/14-3-26-loupe/</link>
+      <pubDate>Sat, 14 Mar 2026 18:14:09 +0000</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/14-3-26-loupe/</guid>
+      <description>When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+Most of the time, when I am iterating on an agent locally, I do not want either of those things.</description>
+    </item>
+    
+    <item>
       <title>Stay Ahead of Scammers: A GPT-4 powered SMS bot to Keep You Safe from Phishing Texts</title>
       <link>https://matt-harrison.com/posts/25-3-23-smishing-sms-bot/</link>
       <pubDate>Sun, 26 Mar 2023 21:51:00 +0100</pubDate>

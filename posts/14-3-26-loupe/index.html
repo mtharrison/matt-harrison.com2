@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>Loupe: a lightweight local tracing dashboard for LLM apps &middot; Matt Harrison</title>
+
+  <meta name="description" content="" />
+
+  
+
+<meta itemprop="name" content="Loupe: a lightweight local tracing dashboard for LLM apps">
+<meta itemprop="description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+Most of the time, when I am iterating on an agent locally, I do not want either of those things.">
+<meta itemprop="datePublished" content="2026-03-14T18:14:09&#43;00:00" />
+<meta itemprop="dateModified" content="2026-03-14T18:14:09&#43;00:00" />
+<meta itemprop="wordCount" content="799">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Loupe: a lightweight local tracing dashboard for LLM apps"/>
+<meta name="twitter:description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+Most of the time, when I am iterating on an agent locally, I do not want either of those things."/>
+
+
+<meta property="og:title" content="Loupe: a lightweight local tracing dashboard for LLM apps" />
+<meta property="og:description" content="When you are building with LLMs there is a very annoying tooling gap. At one end you have console.log() and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.
+Most of the time, when I am iterating on an agent locally, I do not want either of those things." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/14-3-26-loupe/" />
+<meta property="article:published_time" content="2026-03-14T18:14:09+00:00" />
+<meta property="article:modified_time" content="2026-03-14T18:14:09+00:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2897591057477195"
+     crossorigin="anonymous"></script>
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software and Machine Learning Engineer based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://docs.google.com/document/d/1bn7RvqlwSuPQTESZ0_2tVBr0EPw2vc1HhUo6eHf2W08/edit">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>Loupe: a lightweight local tracing dashboard for LLM apps</h1>
+
+  <div class="post-date">
+    <time datetime="2026-03-14T18:14:09Z">Mar 14, 2026</time> &middot; 4 min read
+  </div>
+
+  <img src="/images/14-3-26-loupe/logo.svg" alt="Loupe logo" width="320">
+<p>When you are building with LLMs there is a very annoying tooling gap. At one end you have <code>console.log()</code> and whatever scraps of logging you remembered to add at 1am. At the other end you have full observability stacks built for hosted apps, retained data, team dashboards and production telemetry.</p>
+<p>Most of the time, when I am iterating on an agent locally, I do not want either of those things.</p>
+<p>I built Loupe for that middle ground. It is a lightweight local tracing dashboard for LLM applications and agent systems. It captures full request and response payloads, streaming chunks, tags and hierarchy context, then serves an inspector UI on <code>127.0.0.1</code>. There is no database, no containers, no external service and no persistence. Traces live in memory and disappear on restart.</p>
+<p>That last part is a feature, not a bug.</p>
+<h2 id="the-gap-loupe-fills">The gap Loupe fills</h2>
+<p>Most tracing tools make sense once you have a system you want to watch over time. They assume storage, ingestion, shared dashboards and infrastructure that sticks around.</p>
+<p>That is not the problem I usually have while building.</p>
+<p>Usually I am trying to answer much more immediate questions:</p>
+<ul>
+<li>What exact payload did I send to the model?</li>
+<li>What tool arguments did it produce?</li>
+<li>What did the tool return?</li>
+<li>Which actor or stage made this call?</li>
+<li>Did this go through the invoke path or the stream path?</li>
+<li>Why did this run feel slow?</li>
+</ul>
+<p>Loupe is aimed squarely at those questions. It gives you just enough structure to understand a local run without dragging in an observability platform.</p>
+<h2 id="what-the-ui-gives-you">What the UI gives you</h2>
+<p>The main view is session-first. You can browse by session, actor and stage, then open conversation, request, response and stream views for any trace. There are raw and formatted JSON modes, live updates over SSE, latency badges and cost rollups when usage and pricing are available.</p>
+<img src="/images/14-3-26-loupe/screenshot1.png" alt="Loupe conversation view showing a multi-turn tool call session">
+<p>One thing I particularly wanted was to inspect tool-using conversations without mentally stitching together logs from three places. In the conversation view above you can see the user message, assistant response, tool calls, tool results and stage context in one timeline.</p>
+<p>If I need to drop down a level, I can open the captured request payload directly:</p>
+<img src="/images/14-3-26-loupe/screenshot2.png" alt="Loupe request view showing the captured OpenAI payload">
+<p>That makes it much easier to answer questions like &ldquo;did I actually send the system prompt I think I sent?&rdquo; or &ldquo;what changed between this run and the last one?&rdquo;</p>
+<h2 id="getting-tracing-in-quickly">Getting tracing in quickly</h2>
+<p>If you are already using the official OpenAI client, the easy path is to wrap it and keep calling it as normal:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">npm install @mtharrison/loupe
+export LLM_TRACE_ENABLED<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ts" data-lang="ts"><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">wrapOpenAIClient</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;@mtharrison/loupe&#39;</span>;
+<span style="color:#66d9ef">import</span> <span style="color:#a6e22e">OpenAI</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;openai&#39;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">client</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">wrapOpenAIClient</span>(
+  <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">OpenAI</span>({ <span style="color:#a6e22e">apiKey</span>: <span style="color:#66d9ef">process.env.OPENAI_API_KEY</span> }),
+  () <span style="color:#f92672">=&gt;</span> ({
+    <span style="color:#a6e22e">sessionId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;session-123&#39;</span>,
+    <span style="color:#a6e22e">rootSessionId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;session-123&#39;</span>,
+    <span style="color:#a6e22e">rootActorId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;support-assistant&#39;</span>,
+    <span style="color:#a6e22e">actorId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;support-assistant&#39;</span>,
+    <span style="color:#a6e22e">provider</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;openai&#39;</span>,
+    <span style="color:#a6e22e">model</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;gpt-4.1&#39;</span>,
+    <span style="color:#a6e22e">stage</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;answer&#39;</span>,
+    <span style="color:#a6e22e">tags</span><span style="color:#f92672">:</span> {
+      <span style="color:#a6e22e">feature</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;support&#39;</span>,
+      <span style="color:#a6e22e">environment</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;local&#39;</span>,
+    },
+  }),
+);
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">response</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">chat</span>.<span style="color:#a6e22e">completions</span>.<span style="color:#a6e22e">create</span>({
+  <span style="color:#a6e22e">model</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;gpt-4.1&#39;</span>,
+  <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [
+    { <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#a6e22e">content</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Summarise the latest customer notes.&#39;</span> },
+  ],
+});
+</code></pre></div><p>On the first recorded trace, Loupe starts a small local server and prints the dashboard URL. If your app already exposes an <code>invoke()</code> and <code>stream()</code> interface there is also a <code>wrapChatModel()</code> helper for that shape.</p>
+<h2 id="if-you-need-lower-level-control">If you need lower-level control</h2>
+<p>If your app has its own abstractions already, you can instrument the lifecycle directly:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ts" data-lang="ts"><span style="color:#66d9ef">import</span> {
+  <span style="color:#a6e22e">getLocalLLMTracer</span>,
+  <span style="color:#a6e22e">isTraceEnabled</span>,
+  <span style="color:#a6e22e">recordError</span>,
+  <span style="color:#a6e22e">recordInvokeFinish</span>,
+  <span style="color:#a6e22e">recordInvokeStart</span>,
+  <span style="color:#a6e22e">type</span> <span style="color:#a6e22e">TraceContext</span>,
+} <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;@mtharrison/loupe&#39;</span>;
+
+<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">isTraceEnabled</span>()) {
+  <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">getLocalLLMTracer</span>().<span style="color:#a6e22e">startServer</span>();
+}
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">context</span>: <span style="color:#66d9ef">TraceContext</span> <span style="color:#f92672">=</span> {
+  <span style="color:#a6e22e">sessionId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;session-123&#39;</span>,
+  <span style="color:#a6e22e">rootSessionId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;session-123&#39;</span>,
+  <span style="color:#a6e22e">rootActorId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;planner&#39;</span>,
+  <span style="color:#a6e22e">actorId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;tool-router&#39;</span>,
+  <span style="color:#a6e22e">provider</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;openai&#39;</span>,
+  <span style="color:#a6e22e">model</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;gpt-4.1&#39;</span>,
+  <span style="color:#a6e22e">stage</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;tool-selection&#39;</span>,
+  <span style="color:#a6e22e">tags</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">environment</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;local&#39;</span>,
+  },
+};
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">request</span> <span style="color:#f92672">=</span> {
+  <span style="color:#a6e22e">input</span><span style="color:#f92672">:</span> {
+    <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [{ <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#a6e22e">content</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;Plan a weekend in Lisbon.&#39;</span> }],
+    <span style="color:#a6e22e">tools</span><span style="color:#f92672">:</span> [],
+  },
+  <span style="color:#a6e22e">options</span><span style="color:#f92672">:</span> {},
+};
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">traceId</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">recordInvokeStart</span>(<span style="color:#a6e22e">context</span>, <span style="color:#a6e22e">request</span>);
+
+<span style="color:#66d9ef">try</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">response</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">invoke</span>(<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">input</span>, <span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">options</span>);
+  <span style="color:#a6e22e">recordInvokeFinish</span>(<span style="color:#a6e22e">traceId</span>, <span style="color:#a6e22e">response</span>);
+  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">response</span>;
+} <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">error</span>) {
+  <span style="color:#a6e22e">recordError</span>(<span style="color:#a6e22e">traceId</span>, <span style="color:#a6e22e">error</span>);
+  <span style="color:#66d9ef">throw</span> <span style="color:#a6e22e">error</span>;
+}
+</code></pre></div><p>Streaming works the same way. Loupe records each chunk event, first-chunk latency and the reconstructed final response, which is exactly the stuff that tends to get lost in ad-hoc logging.</p>
+<h2 id="a-few-details-that-matter">A few details that matter</h2>
+<ul>
+<li>Sensitive headers like <code>authorization</code> and <code>x-api-key</code> are redacted before traces are stored.</li>
+<li>Cost rollups work when the model returns usage plus pricing information.</li>
+<li>The hierarchy model is flexible enough for sessions, actors, child actors, stages and guardrails.</li>
+<li>Because everything is local and in-memory, clearing traces is instant and starting over feels cheap.</li>
+</ul>
+<h2 id="what-loupe-is-not">What Loupe is not</h2>
+<p>Loupe is intentionally not a production observability platform. It is not a trace database, not a multi-process collector and not a hosted SaaS.</p>
+<p>If you need long-term retention or shared dashboards for a team, you should use something else.</p>
+<p>But if you feel the jump from <code>console.log()</code> to a full tracing stack is far too big for local development, that is exactly the gap Loupe is meant to fill.</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2026
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>
