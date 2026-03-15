@@ -1,12 +1,23 @@
 ---
-title: "I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal"
+title: "Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal"
 date: 2026-03-15T20:30:28+00:00
 draft: false
+description: "How I used Obsidian Headless to recreate a Things3-style Quick Entry flow for my Obsidian bullet journal, with Apple Watch dictation and automatic capture into daily notes."
+summary: "I use Obsidian for bullet journaling but missed the immediacy of Things3 Quick Entry. Obsidian Headless unlocked a simple way to add that capture flow back."
+keywords:
+  - Obsidian Headless
+  - Obsidian
+  - Things3
+  - Quick Entry
+  - bullet journal
+  - Apple Shortcuts
 ---
 
 <img src="/images/15-3-26-obsidian-capture/logo.svg" alt="obsidian-capture logo" width="280">
 
 [View the repo on GitHub](https://github.com/mtharrison/obsidian-capture)
+
+[Obsidian Headless on GitHub](https://github.com/obsidianmd/obsidian-headless)
 
 I use Obsidian for bullet journaling.
 
@@ -22,7 +33,9 @@ One of the moments that really crystallised this for me was getting stung with a
 
 So I built `obsidian-capture`.
 
-It is a very small server that gives my vault a Quick Entry style inbox. I can speak a thought to Siri, trigger an Apple Shortcut from my watch, hit it from a script, or send text in over HTTP from wherever is convenient. The server takes that text, works out where today's daily note lives, appends a markdown task under a configured heading, and lets `obsidian-headless` handle syncing the vault as normal.
+A big part of why I could build this cleanly now is [Obsidian Headless](https://github.com/obsidianmd/obsidian-headless). I think this is one of the most interesting things the Obsidian team have added in a while, because it pushes Obsidian beyond being just an app you click around in. Once you can sensibly interact with a vault from scripts and servers, a lot of new use cases open up. This project is one of them.
+
+`obsidian-capture` is a very small server that gives my vault a Quick Entry style inbox. I can speak a thought to Siri, trigger an Apple Shortcut from my watch, hit it from a script, or send text in over HTTP from wherever is convenient. The server takes that text, works out where today's daily note lives, appends a markdown task under a configured heading, and lets Obsidian Headless handle syncing the vault as normal.
 
 The important part for me is not really the server itself. It is that the source of truth stays in Obsidian. I did not want a separate inbox app, a separate database or some elaborate plugin architecture. I just wanted the capture experience of Things3, pointed at my existing bullet journal.
 
@@ -61,13 +74,13 @@ Which ends up as:
 - [ ] Book dentist appointment
 ```
 
-That is basically the whole idea. One boring endpoint, a bit of date templating, and a small amount of file surgery to put the line in the right section.
+That is basically the whole idea. One boring endpoint, a bit of date templating, a small amount of file surgery to put the line in the right section, and Obsidian Headless taking care of the bit that makes the whole thing feel like part of my actual vault rather than a detached sidecar.
 
 I like this shape of project. It is not trying to replace Obsidian, and it is not pretending to be a task manager. It is just a bridge between quick capture and a filesystem-based note system I already trust.
 
 Because it is just HTTP, I can wire it up to a few different entry points. Apple Shortcuts are the obvious one. That gives me a decent approximation of the Things3 feeling on iPhone, Mac and Apple Watch. I also added an Alexa endpoint because speaking "capture buy milk" out loud while walking around the house is exactly the kind of lazy interaction a system like this should support.
 
-There are a couple of details in the implementation that make it feel more solid than a throwaway script. It normalises whitespace, supports configurable daily note path and title templates, appends into the correct markdown section instead of blindly writing at EOF, and protects the capture endpoint with a bearer token. It is still tiny, but it is tiny in a way that feels usable rather than flimsy.
+There are a couple of details in the implementation that make it feel more solid than a throwaway script. It normalises whitespace, supports configurable daily note path and title templates, appends into the correct markdown section instead of blindly writing at EOF, and protects the capture endpoint with a bearer token. It is still tiny, but it is tiny in a way that feels usable rather than flimsy. A lot of the credit for that goes to Obsidian Headless making this kind of integration feel like a first-class workflow rather than a hack.
 
 I have documented local, Docker and Fly.io deployment in the repo because I wanted it to be easy to run wherever makes sense. For me, the appeal is that it stays simple even when hosted somewhere. It is still just writing plain markdown into the vault structure I already use.
 
