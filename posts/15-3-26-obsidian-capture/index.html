@@ -5,35 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="generator" content="Hugo 0.74.1" />
 
-  <title>I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal &middot; Matt Harrison</title>
+  <title>Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal &middot; Matt Harrison</title>
 
-  <meta name="description" content="" />
+  <meta name="description" content="How I used Obsidian Headless to recreate a Things3-style Quick Entry flow for my Obsidian bullet journal, with Apple Watch dictation and automatic capture into daily notes." />
 
   
 
-<meta itemprop="name" content="I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal">
-<meta itemprop="description" content="View the repo on GitHub
-I use Obsidian for bullet journaling.
-That setup works really well for me once something has actually made it into the vault. My daily notes are where tasks live, where random thoughts land, and where the day gradually turns into something I can review later. I like that it is just files. I like that I can structure it however I want. I like that it does not feel like I am renting my own notes back from a SaaS.">
+<meta itemprop="name" content="Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal">
+<meta itemprop="description" content="How I used Obsidian Headless to recreate a Things3-style Quick Entry flow for my Obsidian bullet journal, with Apple Watch dictation and automatic capture into daily notes.">
 <meta itemprop="datePublished" content="2026-03-15T20:30:28&#43;00:00" />
 <meta itemprop="dateModified" content="2026-03-15T20:30:28&#43;00:00" />
-<meta itemprop="wordCount" content="912">
+<meta itemprop="wordCount" content="1037">
 
 
 
 <meta itemprop="keywords" content="" />
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal"/>
-<meta name="twitter:description" content="View the repo on GitHub
-I use Obsidian for bullet journaling.
-That setup works really well for me once something has actually made it into the vault. My daily notes are where tasks live, where random thoughts land, and where the day gradually turns into something I can review later. I like that it is just files. I like that I can structure it however I want. I like that it does not feel like I am renting my own notes back from a SaaS."/>
+<meta name="twitter:title" content="Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal"/>
+<meta name="twitter:description" content="How I used Obsidian Headless to recreate a Things3-style Quick Entry flow for my Obsidian bullet journal, with Apple Watch dictation and automatic capture into daily notes."/>
 
 
-<meta property="og:title" content="I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal" />
-<meta property="og:description" content="View the repo on GitHub
-I use Obsidian for bullet journaling.
-That setup works really well for me once something has actually made it into the vault. My daily notes are where tasks live, where random thoughts land, and where the day gradually turns into something I can review later. I like that it is just files. I like that I can structure it however I want. I like that it does not feel like I am renting my own notes back from a SaaS." />
+<meta property="og:title" content="Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal" />
+<meta property="og:description" content="How I used Obsidian Headless to recreate a Things3-style Quick Entry flow for my Obsidian bullet journal, with Apple Watch dictation and automatic capture into daily notes." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://matt-harrison.com/posts/15-3-26-obsidian-capture/" />
 <meta property="article:published_time" content="2026-03-15T20:30:28+00:00" />
@@ -141,7 +135,7 @@ That setup works really well for me once something has actually made it into the
 
   <main class="content container">
   <div class="post">
-  <h1>I missed Quick Entry from Things3, so I built it for my Obsidian bullet journal</h1>
+  <h1>Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal</h1>
 
   <div class="post-date">
     <time datetime="2026-03-15T20:30:28Z">Mar 15, 2026</time> &middot; 5 min read
@@ -149,6 +143,7 @@ That setup works really well for me once something has actually made it into the
 
   <img src="/images/15-3-26-obsidian-capture/logo.svg" alt="obsidian-capture logo" width="280">
 <p><a href="https://github.com/mtharrison/obsidian-capture">View the repo on GitHub</a></p>
+<p><a href="https://github.com/obsidianmd/obsidian-headless">Obsidian Headless on GitHub</a></p>
 <p>I use Obsidian for bullet journaling.</p>
 <p>That setup works really well for me once something has actually made it into the vault. My daily notes are where tasks live, where random thoughts land, and where the day gradually turns into something I can review later. I like that it is just files. I like that I can structure it however I want. I like that it does not feel like I am renting my own notes back from a SaaS.</p>
 <p>But there was one thing I still missed from Things3: Quick Entry.</p>
@@ -156,7 +151,8 @@ That setup works really well for me once something has actually made it into the
 <p>Obsidian, for all the flexibility it gives me, is not naturally as good at that part. If I have to unlock my phone, open the app, navigate to today&rsquo;s note and get the cursor into the right place, I will do it for important things. I will not do it consistently for the small fleeting thoughts that mostly make up a day.</p>
 <p>One of the moments that really crystallised this for me was getting stung with an airport parking charge. I had dropped someone off and needed to remember to go online and pay the drop-off fee before midnight. There was no sensible way to deal with it while I was driving, which is exactly when I thought of it, and by the time I got home it had fallen out of my head completely. A few days later I got the charge. That is exactly the kind of task capture tools are supposed to save you from losing.</p>
 <p>So I built <code>obsidian-capture</code>.</p>
-<p>It is a very small server that gives my vault a Quick Entry style inbox. I can speak a thought to Siri, trigger an Apple Shortcut from my watch, hit it from a script, or send text in over HTTP from wherever is convenient. The server takes that text, works out where today&rsquo;s daily note lives, appends a markdown task under a configured heading, and lets <code>obsidian-headless</code> handle syncing the vault as normal.</p>
+<p>A big part of why I could build this cleanly now is <a href="https://github.com/obsidianmd/obsidian-headless">Obsidian Headless</a>. I think this is one of the most interesting things the Obsidian team have added in a while, because it pushes Obsidian beyond being just an app you click around in. Once you can sensibly interact with a vault from scripts and servers, a lot of new use cases open up. This project is one of them.</p>
+<p><code>obsidian-capture</code> is a very small server that gives my vault a Quick Entry style inbox. I can speak a thought to Siri, trigger an Apple Shortcut from my watch, hit it from a script, or send text in over HTTP from wherever is convenient. The server takes that text, works out where today&rsquo;s daily note lives, appends a markdown task under a configured heading, and lets Obsidian Headless handle syncing the vault as normal.</p>
 <p>The important part for me is not really the server itself. It is that the source of truth stays in Obsidian. I did not want a separate inbox app, a separate database or some elaborate plugin architecture. I just wanted the capture experience of Things3, pointed at my existing bullet journal.</p>
 <p>In practice, it looks like this.</p>
 <p align="center">
@@ -177,10 +173,10 @@ That setup works really well for me once something has actually made it into the
 
 <span style="color:#75715e">## Captured
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">- [ ]</span> Book dentist appointment
-</code></pre></div><p>That is basically the whole idea. One boring endpoint, a bit of date templating, and a small amount of file surgery to put the line in the right section.</p>
+</code></pre></div><p>That is basically the whole idea. One boring endpoint, a bit of date templating, a small amount of file surgery to put the line in the right section, and Obsidian Headless taking care of the bit that makes the whole thing feel like part of my actual vault rather than a detached sidecar.</p>
 <p>I like this shape of project. It is not trying to replace Obsidian, and it is not pretending to be a task manager. It is just a bridge between quick capture and a filesystem-based note system I already trust.</p>
 <p>Because it is just HTTP, I can wire it up to a few different entry points. Apple Shortcuts are the obvious one. That gives me a decent approximation of the Things3 feeling on iPhone, Mac and Apple Watch. I also added an Alexa endpoint because speaking &ldquo;capture buy milk&rdquo; out loud while walking around the house is exactly the kind of lazy interaction a system like this should support.</p>
-<p>There are a couple of details in the implementation that make it feel more solid than a throwaway script. It normalises whitespace, supports configurable daily note path and title templates, appends into the correct markdown section instead of blindly writing at EOF, and protects the capture endpoint with a bearer token. It is still tiny, but it is tiny in a way that feels usable rather than flimsy.</p>
+<p>There are a couple of details in the implementation that make it feel more solid than a throwaway script. It normalises whitespace, supports configurable daily note path and title templates, appends into the correct markdown section instead of blindly writing at EOF, and protects the capture endpoint with a bearer token. It is still tiny, but it is tiny in a way that feels usable rather than flimsy. A lot of the credit for that goes to Obsidian Headless making this kind of integration feel like a first-class workflow rather than a hack.</p>
 <p>I have documented local, Docker and Fly.io deployment in the repo because I wanted it to be easy to run wherever makes sense. For me, the appeal is that it stays simple even when hosted somewhere. It is still just writing plain markdown into the vault structure I already use.</p>
 <p>I do not think this is a project everybody needs. If you are happy opening Obsidian and typing directly into your daily note, then great. But if, like me, you have found a bullet journal workflow you really like in Obsidian and still occasionally miss the sheer immediacy of Things3 Quick Entry, this closes that gap surprisingly well.</p>
 <p>It turns out I did not want a better notes app. I just wanted my notes app to be a little easier to interrupt my day with.</p>
