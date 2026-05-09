@@ -6,10 +6,19 @@
     <description>Recent content in Posts on Matt Harrison</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 09 May 2026 11:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 09 May 2026 13:00:00 +0100</lastBuildDate>
     
 	<atom:link href="https://matt-harrison.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>LangGraph from scratch, part 2: streaming, subgraphs and dynamic fan-out</title>
+      <link>https://matt-harrison.com/posts/9-5-26-langgraph-part-2/</link>
+      <pubDate>Sat, 09 May 2026 13:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/9-5-26-langgraph-part-2/</guid>
+      <description>Picking up where part 1 left off. Streaming at the right granularity, subgraphs as Runnables, and the Send API for the moment you realise you need to fan out to N workers and N is not known until the LLM tells you.</description>
+    </item>
     
     <item>
       <title>LangGraph from scratch, part 1: state, graphs and humans in the loop</title>
