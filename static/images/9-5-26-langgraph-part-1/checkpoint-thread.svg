@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="'Kalam','Caveat','Patrick Hand','Comic Sans MS',cursive">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap');</style>
+    <filter id="r6" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="22"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.7"/>
+    </filter>
+    <marker id="ah6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+  <rect width="720" height="360" fill="#fdfaf2"/>
+  <text x="360" y="38" font-size="22" font-weight="700" fill="#222" text-anchor="middle">a thread is a chain of saved snapshots</text>
+  <text x="360" y="62" font-size="14" fill="#666" text-anchor="middle">thread_id: "user-123"</text>
+
+  <g filter="url(#r6)">
+    <rect x="40" y="120" width="120" height="100" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="200" y="120" width="120" height="100" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="360" y="120" width="120" height="100" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="520" y="120" width="120" height="100" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+  </g>
+
+  <text x="100" y="155" font-size="16" font-weight="700" text-anchor="middle">ckpt 1</text>
+  <text x="100" y="180" font-size="13" text-anchor="middle">after START</text>
+  <text x="100" y="200" font-size="12" fill="#666" text-anchor="middle">[user msg]</text>
+
+  <text x="260" y="155" font-size="16" font-weight="700" text-anchor="middle">ckpt 2</text>
+  <text x="260" y="180" font-size="13" text-anchor="middle">after agent</text>
+  <text x="260" y="200" font-size="12" fill="#666" text-anchor="middle">[+ ai msg]</text>
+
+  <text x="420" y="155" font-size="16" font-weight="700" text-anchor="middle">ckpt 3</text>
+  <text x="420" y="180" font-size="13" text-anchor="middle">after tools</text>
+  <text x="420" y="200" font-size="12" fill="#666" text-anchor="middle">[+ tool result]</text>
+
+  <text x="580" y="155" font-size="16" font-weight="700" text-anchor="middle">ckpt 4</text>
+  <text x="580" y="180" font-size="13" text-anchor="middle">after agent</text>
+  <text x="580" y="200" font-size="12" fill="#666" text-anchor="middle">[+ final ai]</text>
+
+  <g stroke="#222" stroke-width="2" fill="none" filter="url(#r6)">
+    <path d="M160 170 L200 170" marker-end="url(#ah6)"/>
+    <path d="M320 170 L360 170" marker-end="url(#ah6)"/>
+    <path d="M480 170 L520 170" marker-end="url(#ah6)"/>
+  </g>
+
+  <text x="360" y="270" font-size="15" fill="#444" text-anchor="middle">next invoke on the same thread_id picks up at ckpt 4 and keeps going.</text>
+  <text x="360" y="292" font-size="15" fill="#444" text-anchor="middle">getStateHistory walks the chain backwards, so you can rewind and fork.</text>
+</svg>
