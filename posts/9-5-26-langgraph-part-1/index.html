@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Hugo 0.74.1" />
+
+  <title>LangGraph from scratch, part 1: state, graphs and humans in the loop &middot; Matt Harrison</title>
+
+  <meta name="description" content="A practical walkthrough of LangGraph in TypeScript covering why it exists, how state and channels actually work, the four primitives of StateGraph, checkpointers, and human-in-the-loop with interrupt()." />
+
+  
+
+<meta itemprop="name" content="LangGraph from scratch, part 1: state, graphs and humans in the loop">
+<meta itemprop="description" content="A practical walkthrough of LangGraph in TypeScript covering why it exists, how state and channels actually work, the four primitives of StateGraph, checkpointers, and human-in-the-loop with interrupt().">
+<meta itemprop="datePublished" content="2026-05-09T11:00:00&#43;01:00" />
+<meta itemprop="dateModified" content="2026-05-09T11:00:00&#43;01:00" />
+<meta itemprop="wordCount" content="2849">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="LangGraph from scratch, part 1: state, graphs and humans in the loop"/>
+<meta name="twitter:description" content="A practical walkthrough of LangGraph in TypeScript covering why it exists, how state and channels actually work, the four primitives of StateGraph, checkpointers, and human-in-the-loop with interrupt()."/>
+
+
+<meta property="og:title" content="LangGraph from scratch, part 1: state, graphs and humans in the loop" />
+<meta property="og:description" content="A practical walkthrough of LangGraph in TypeScript covering why it exists, how state and channels actually work, the four primitives of StateGraph, checkpointers, and human-in-the-loop with interrupt()." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matt-harrison.com/posts/9-5-26-langgraph-part-1/" />
+<meta property="article:published_time" content="2026-05-09T11:00:00+01:00" />
+<meta property="article:modified_time" content="2026-05-09T11:00:00+01:00" />
+
+
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/print.css"
+        media="print">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/poole.css">
+
+  <link type="text/css"
+        rel="stylesheet"
+        href="/css/hyde.css">
+
+  
+<style type="text/css">
+  .sidebar {
+    background-color: #141b19;
+  }
+
+  .read-more-link a {
+    border-color: #141b19;
+  }
+
+  .pagination li a {
+    color: #141b19;
+    border: 1px solid #141b19;
+  }
+
+  .pagination li.active a {
+    background-color: #141b19;
+  }
+
+  .pagination li a:hover {
+    background-color: #141b19;
+    opacity: 0.75;
+  }
+
+  footer a,
+  .content a,
+  .related-posts li a:hover {
+    color: #141b19;
+  }
+</style>
+
+
+
+  <link type="text/css" rel="stylesheet" href="/css/blog.css">
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700&display=swap">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+        integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+        crossorigin="anonymous" />
+
+  <link rel="apple-touch-icon-precomposed"
+        sizes="144x144"
+        href="/apple-touch-icon-144-precomposed.png">
+
+  <link rel="shortcut icon" href="/favicon.png">
+
+  
+  </head>
+<body>
+  <aside class="sidebar">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2897591057477195"
+     crossorigin="anonymous"></script>
+    <div class="container">
+      <div class="sidebar-about">
+        
+          
+          <div class="author-image">
+            <a href="/"><img src="/images/profile.jpg" class="img-circle img-headshot center" alt="Profile Picture"></a>
+          </div>
+          
+        
+
+        <h1><a href="/">Matt Harrison</a></h1>
+
+        
+        <p class="lead">Software and Machine Learning Engineer based in the UK</p>
+        
+      </div>
+
+      <nav>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="https://github.com/mtharrison">GitHub</a>
+          </li><li>
+            <a href="https://docs.google.com/document/d/1bn7RvqlwSuPQTESZ0_2tVBr0EPw2vc1HhUo6eHf2W08/edit">Resume</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+
+  <main class="content container">
+  <div class="post">
+  <h1>LangGraph from scratch, part 1: state, graphs and humans in the loop</h1>
+
+  <div class="post-date">
+    <time datetime="2026-05-09T11:00:00&#43;0100">May 9, 2026</time> &middot; 14 min read
+  </div>
+
+  <p>I have been building agents with LangGraph for a while now. Long enough that the bits I found weird at first feel obvious in retrospect, and long enough to know which bits everyone gets bitten by on the way in. This is part 1 of a short series where I try to explain LangGraph the way I wish someone had explained it to me, instead of the way the docs explain it, which is correct but assumes you already know what a &ldquo;channel&rdquo; is and why you should care.</p>
+<p>Everything in this post is in TypeScript. I work in <code>@langchain/langgraph</code>. The Python API is similar but not identical, and a lot of the tutorials floating around assume Python and quietly use things like <code>add_messages</code> that do not exist on the JS side. If you find yourself reaching for something that only exists in Python, that is the signal to stop and check.</p>
+<p>This part covers the why, the model of state, the four primitives that make up a <code>StateGraph</code>, persistence with checkpointers, and human-in-the-loop with <code>interrupt()</code>. Part 2 will get into streaming, subgraphs and the <code>Send</code> API.</p>
+<h2 id="where-langgraph-sits">Where LangGraph sits</h2>
+<p>The first thing that confused me was just placing LangGraph in the LangChain universe. There are a lot of products with similar names and they do not all do the same thing.</p>
+<img src="/images/9-5-26-langgraph-part-1/ecosystem.svg" alt="diagram showing LangChain, LangGraph, LangSmith, deepagents and LangGraph Platform as separate but related boxes">
+<p>The mental model that helped me:</p>
+<ul>
+<li><strong>LangChain</strong> is a component library. It gives you common interfaces over models, retrievers, vector stores, output parsers. Useful, but it does not run anything for you.</li>
+<li><strong>LangGraph</strong> is a runtime. It is the thing that actually executes a multi-step agent or workflow, with state, branching and persistence.</li>
+<li><strong>LangSmith</strong> is the tracing and eval product. Independent of both. You can use it with anything.</li>
+<li><strong>deepagents</strong> is an opinionated preset built on top of LangGraph. It bakes in a planner, sub-agents and a virtual filesystem, and gives you something Claude-Code-shaped without you designing it yourself.</li>
+<li><strong>LangGraph Platform</strong> is a hosted runtime if you would rather not babysit your own deployment.</li>
+</ul>
+<p>Whenever you see these names mixed up in a blog post, hold this picture in your head: LangChain is the parts catalogue, LangGraph is the engine.</p>
+<h2 id="why-langgraph-exists">Why LangGraph exists</h2>
+<p>The original LangChain <code>AgentExecutor</code> was a hidden while-loop. You handed it a model, some tools and a prompt, called <code>.run()</code> and crossed your fingers. It worked surprisingly well for demo-shaped problems and got progressively more painful as you tried to do real things with it. The loop was inside the framework, so you could not:</p>
+<ul>
+<li>inspect or modify state mid-run</li>
+<li>branch on anything more interesting than &ldquo;did the model ask for a tool&rdquo;</li>
+<li>pause and resume, for example to wait for a human to approve something</li>
+<li>persist state across runs in a sensible way</li>
+<li>compose multiple agents together without it turning into a nest of callbacks</li>
+</ul>
+<p>LangGraph replaces that hidden loop with an explicit graph that you build, inspect and run. It is the same idea as moving from a black-box workflow engine to writing your own state machine, except the state machine is the natural unit of an agent.</p>
+<p>I will not labour the workflows-vs-agents distinction much because it is a thin one. Both are graphs. The difference is who decides which edge to take next. In a workflow, you do, in code. In an agent, the model does, at runtime. LangGraph expresses both with the same primitives.</p>
+<h2 id="the-react-loop-is-just-a-tiny-graph">The ReAct loop is just a tiny graph</h2>
+<p>Almost every agent you have ever seen is a variant of the ReAct loop. Call the model, see if it asked for a tool, if so run the tool, feed the result back, repeat. If you draw it, it is two nodes in a circle.</p>
+<img src="/images/9-5-26-langgraph-part-1/react-loop.svg" alt="ReAct loop drawn as a graph: agent node, conditional check, tools node, loop back">
+<p>This is so common that LangGraph ships <code>createReactAgent()</code> as a one-liner. Under the hood it builds the graph above. Reach for <code>createReactAgent</code> first when you need a tool-using agent and nothing else. Only drop down to a <code>StateGraph</code> when you need something the prebuilt cannot express, like custom state, branching that is not just &ldquo;tools or end&rdquo;, parallel work, or pausing for a human.</p>
+<h2 id="stategraph-four-primitives-then-you-are-done">StateGraph: four primitives, then you are done</h2>
+<p>A <code>StateGraph</code> has four primitives. Once you understand them, the rest is just combinations.</p>
+<ol>
+<li><strong>State</strong>, defined as a schema of channels with reducers</li>
+<li><strong>Nodes</strong>, which are functions that read state and return a partial update</li>
+<li><strong>Edges</strong>, which decide where execution goes next</li>
+<li><strong>Compilation</strong>, which turns the builder into something you can actually invoke</li>
+</ol>
+<p>Here is the simplest possible graph in TypeScript:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">StateGraph</span>, <span style="color:#a6e22e">START</span>, <span style="color:#a6e22e">END</span>, <span style="color:#a6e22e">MessagesAnnotation</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">ChatAnthropic</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/anthropic&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">model</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ChatAnthropic</span>({ <span style="color:#a6e22e">model</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;claude-sonnet-4-6&#34;</span> });
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">graph</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">StateGraph</span>(<span style="color:#a6e22e">MessagesAnnotation</span>)
+  .<span style="color:#a6e22e">addNode</span>(<span style="color:#e6db74">&#34;agent&#34;</span>, <span style="color:#a6e22e">async</span> (<span style="color:#a6e22e">state</span>) <span style="color:#f92672">=&gt;</span> {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">response</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">invoke</span>(<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>);
+    <span style="color:#66d9ef">return</span> { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#a6e22e">response</span>] };
+  })
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#a6e22e">START</span>, <span style="color:#e6db74">&#34;agent&#34;</span>)
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;agent&#34;</span>, <span style="color:#a6e22e">END</span>)
+  .<span style="color:#a6e22e">compile</span>();
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">graph</span>.<span style="color:#a6e22e">invoke</span>({
+  <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [{ <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;user&#34;</span>, <span style="color:#a6e22e">content</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;Hello&#34;</span> }],
+});
+</code></pre></div><p>That is the whole shape of every graph you will write. Define a schema, add nodes, wire edges, compile, invoke. Everything else in this post is unpacking what each of those steps actually means.</p>
+<h3 id="state-is-a-row-of-channels-not-a-single-object">State is a row of channels, not a single object</h3>
+<p>This is the part that took me the longest to internalise, and once it clicked, half of LangGraph stopped feeling weird.</p>
+<p>State is not a single blob you pass around. It is a set of named channels, each with its own merge rule. When a node returns a partial update, LangGraph looks at each key in the returned object, finds the corresponding channel, and asks that channel&rsquo;s reducer how to combine the new value with the old one.</p>
+<img src="/images/9-5-26-langgraph-part-1/channels.svg" alt="three channel boxes side by side: messages with append reducer, userId with no reducer, retrievedDocs with concat reducer">
+<p>A reducer is just <code>(current, update) =&gt; merged</code>. Some examples:</p>
+<table>
+<thead>
+<tr>
+<th>Reducer</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>None (the default)</td>
+<td>Overwrites</td>
+</tr>
+<tr>
+<td><code>(a, b) =&gt; a.concat(b)</code></td>
+<td>Concatenates lists</td>
+</tr>
+<tr>
+<td><code>messagesStateReducer</code></td>
+<td>Appends new messages, edits existing ones by id</td>
+</tr>
+<tr>
+<td>Whatever you want</td>
+<td>Whatever you want</td>
+</tr>
+</tbody>
+</table>
+<p>The single biggest footgun in LangGraph is having an array channel without a reducer. You write a node that returns <code>{ messages: [newMsg] }</code>, you expect it to append, and instead it overwrites and you lose the conversation history. If your channel is a list, you almost certainly want a concat reducer or <code>messagesStateReducer</code>.</p>
+<p>In TypeScript you define state with the <code>Annotation</code> builder:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">Annotation</span>, <span style="color:#a6e22e">messagesStateReducer</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph&#34;</span>;
+<span style="color:#66d9ef">import</span> <span style="color:#a6e22e">type</span> { <span style="color:#a6e22e">BaseMessage</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/core/messages&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">StateAnnotation</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Annotation</span>.<span style="color:#a6e22e">Root</span>({
+  <span style="color:#a6e22e">messages</span>: <span style="color:#66d9ef">Annotation</span>&lt;<span style="color:#f92672">BaseMessage</span><span style="color:#960050;background-color:#1e0010">[]</span>&gt;({
+    <span style="color:#a6e22e">reducer</span>: <span style="color:#66d9ef">messagesStateReducer</span>,
+    <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> () <span style="color:#f92672">=&gt;</span> [],
+  }),
+  <span style="color:#a6e22e">userId</span>: <span style="color:#66d9ef">Annotation</span>&lt;<span style="color:#f92672">string</span>&gt;(),
+  <span style="color:#a6e22e">retrievedDocs</span>: <span style="color:#66d9ef">Annotation</span>&lt;<span style="color:#f92672">string</span><span style="color:#960050;background-color:#1e0010">[]</span>&gt;({
+    <span style="color:#a6e22e">reducer</span><span style="color:#f92672">:</span> (<span style="color:#a6e22e">current</span>, <span style="color:#a6e22e">update</span>) <span style="color:#f92672">=&gt;</span> <span style="color:#a6e22e">current</span>.<span style="color:#a6e22e">concat</span>(<span style="color:#a6e22e">update</span>),
+    <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span> () <span style="color:#f92672">=&gt;</span> [],
+  }),
+});
+
+<span style="color:#a6e22e">type</span> <span style="color:#a6e22e">State</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">typeof</span> <span style="color:#a6e22e">StateAnnotation</span>.<span style="color:#a6e22e">State</span>;
+</code></pre></div><p><code>MessagesAnnotation</code> you saw earlier is just a prebuilt schema with one channel called <code>messages</code> configured with the right reducer. You can use it as your whole schema if all you have is a chat history, or spread it into your own:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">MyState</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Annotation</span>.<span style="color:#a6e22e">Root</span>({
+  ...<span style="color:#a6e22e">MessagesAnnotation</span>.<span style="color:#a6e22e">spec</span>,
+  <span style="color:#a6e22e">userId</span>: <span style="color:#66d9ef">Annotation</span>&lt;<span style="color:#f92672">string</span>&gt;(),
+});
+</code></pre></div><h4 id="why-nodes-return-partial-updates">Why nodes return partial updates</h4>
+<p>People coming from React or Redux often ask why nodes do not just return the whole new state. There are good reasons.</p>
+<img src="/images/9-5-26-langgraph-part-1/partial-update.svg" alt="diagram showing a node taking current state, returning a partial update of just messages, and the merger producing new state with messages updated and other fields untouched">
+<ol>
+<li>Reducers need a delta to merge. If you returned the whole state, there would be nothing to merge, it would just be an overwrite.</li>
+<li>Two parallel branches both returning <code>{ messages: [...] }</code> get combined by the reducer instead of racing. With full-state returns the last writer would win.</li>
+<li><code>.stream()</code> can emit one event per node containing only what that node changed, because that is what nodes actually emit.</li>
+<li>Node code stays readable. <code>return { messages: [response] }</code> is a lot less error-prone than spreading the entire previous state every time.</li>
+</ol>
+<p>So the rule of thumb when writing a node is: read whatever you want from state, return only what you want to change.</p>
+<h3 id="nodes">Nodes</h3>
+<p>A node is just a function. <code>(state) =&gt; Partial&lt;Update&gt;</code>, async or sync, anything goes inside. LLM calls, database writes, file IO, calls to other services. The only rules are read whatever you want from state, do not mutate state directly, and return a partial update.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">retrieveNode</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">async</span> (<span style="color:#a6e22e">state</span>: <span style="color:#66d9ef">typeof</span> <span style="color:#a6e22e">MyState</span>.<span style="color:#a6e22e">State</span>) <span style="color:#f92672">=&gt;</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">docs</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">vectorStore</span>.<span style="color:#a6e22e">search</span>(<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">query</span>);
+  <span style="color:#66d9ef">return</span> { <span style="color:#a6e22e">retrievedDocs</span>: <span style="color:#66d9ef">docs</span> };
+};
+</code></pre></div><p>That is it. Nothing magical.</p>
+<h3 id="edges">Edges</h3>
+<p>Edges decide what runs next. There are three flavours.</p>
+<p><strong>Static edges</strong> are the boring deterministic kind. Go from A to B every time.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript">.<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;retrieve&#34;</span>, <span style="color:#e6db74">&#34;generate&#34;</span>)
+</code></pre></div><p><strong>Conditional edges</strong> look at state and decide. This is how routing and agent loops work.</p>
+<img src="/images/9-5-26-langgraph-part-1/conditional-edges.svg" alt="agent node leading into a routing function diamond, which fans out to tools, summarise, or END">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript">.<span style="color:#a6e22e">addConditionalEdges</span>(
+  <span style="color:#e6db74">&#34;agent&#34;</span>,
+  (<span style="color:#a6e22e">state</span>) <span style="color:#f92672">=&gt;</span> {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">last</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>.<span style="color:#a6e22e">at</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">last</span><span style="color:#f92672">?</span>.<span style="color:#a6e22e">tool_calls</span><span style="color:#f92672">?</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;tools&#34;</span> <span style="color:#f92672">:</span> <span style="color:#a6e22e">END</span>;
+  },
+  [<span style="color:#e6db74">&#34;tools&#34;</span>, <span style="color:#a6e22e">END</span>],
+)
+</code></pre></div><p>The third argument is technically optional, but I always pass it. It makes graph visualisation correct and helps the type system know what targets are possible.</p>
+<p><strong>Parallel edges</strong> are just multiple <code>addEdge</code> calls from the same source. The targets run concurrently and their state updates merge via the reducers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript">.<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;planner&#34;</span>, <span style="color:#e6db74">&#34;researcher&#34;</span>)
+.<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;planner&#34;</span>, <span style="color:#e6db74">&#34;summariser&#34;</span>)
+</code></pre></div><p>Whether the merge does what you want depends entirely on the reducers on the channels they write to. If both branches write to <code>messages</code> and <code>messages</code> has <code>messagesStateReducer</code>, you get both messages appended. If you forget the reducer you get whichever one finished last. Same footgun, different angle.</p>
+<h3 id="compilation">Compilation</h3>
+<p><code>.compile()</code> does three things:</p>
+<ul>
+<li>validates the graph (no orphan nodes, every path leads to <code>END</code>)</li>
+<li>optionally accepts a checkpointer for persistence (more on that in a moment)</li>
+<li>returns a <code>CompiledStateGraph</code> that implements LangChain&rsquo;s <code>Runnable</code> interface</li>
+</ul>
+<p>That last bit is a bigger deal than it first looks. Because a compiled graph is a <code>Runnable</code>, it has the same shape as a single LLM call: <code>.invoke()</code>, <code>.stream()</code>, <code>.batch()</code>, <code>.streamEvents()</code>. So you can feed a graph into something that expects an LLM, you can use one graph as a node inside another graph, and tracing tools like LangSmith just work.</p>
+<p>The way I think about it: the <code>StateGraph</code> is the recipe, <code>.compile()</code> cooks it, and what you get back is the same kind of object as every other LangChain primitive. Just bigger.</p>
+<h3 id="a-real-example-the-react-loop-by-hand">A real example: the ReAct loop, by hand</h3>
+<p>Putting it together, here is what <code>createReactAgent</code> actually builds for you:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">StateGraph</span>, <span style="color:#a6e22e">START</span>, <span style="color:#a6e22e">END</span>, <span style="color:#a6e22e">MessagesAnnotation</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">ToolNode</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph/prebuilt&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">ChatAnthropic</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/anthropic&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">tools</span> <span style="color:#f92672">=</span> [<span style="color:#75715e">/* your tool defs */</span>];
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">model</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ChatAnthropic</span>({ <span style="color:#a6e22e">model</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;claude-sonnet-4-6&#34;</span> }).<span style="color:#a6e22e">bindTools</span>(<span style="color:#a6e22e">tools</span>);
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">callModel</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">async</span> (<span style="color:#a6e22e">state</span>: <span style="color:#66d9ef">typeof</span> <span style="color:#a6e22e">MessagesAnnotation</span>.<span style="color:#a6e22e">State</span>) <span style="color:#f92672">=&gt;</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">response</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">invoke</span>(<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>);
+  <span style="color:#66d9ef">return</span> { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#a6e22e">response</span>] };
+};
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">shouldContinue</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>: <span style="color:#66d9ef">typeof</span> <span style="color:#a6e22e">MessagesAnnotation</span>.<span style="color:#a6e22e">State</span>) <span style="color:#f92672">=&gt;</span> {
+  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">last</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>.<span style="color:#a6e22e">at</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">last</span><span style="color:#f92672">?</span>.<span style="color:#a6e22e">tool_calls</span><span style="color:#f92672">?</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;tools&#34;</span> <span style="color:#f92672">:</span> <span style="color:#a6e22e">END</span>;
+};
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">graph</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">StateGraph</span>(<span style="color:#a6e22e">MessagesAnnotation</span>)
+  .<span style="color:#a6e22e">addNode</span>(<span style="color:#e6db74">&#34;agent&#34;</span>, <span style="color:#a6e22e">callModel</span>)
+  .<span style="color:#a6e22e">addNode</span>(<span style="color:#e6db74">&#34;tools&#34;</span>, <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ToolNode</span>(<span style="color:#a6e22e">tools</span>))
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#a6e22e">START</span>, <span style="color:#e6db74">&#34;agent&#34;</span>)
+  .<span style="color:#a6e22e">addConditionalEdges</span>(<span style="color:#e6db74">&#34;agent&#34;</span>, <span style="color:#a6e22e">shouldContinue</span>, [<span style="color:#e6db74">&#34;tools&#34;</span>, <span style="color:#a6e22e">END</span>])
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;tools&#34;</span>, <span style="color:#e6db74">&#34;agent&#34;</span>)
+  .<span style="color:#a6e22e">compile</span>();
+</code></pre></div><p>That is it. The agent runs until the model stops asking for tools. Two nodes, one conditional edge, one loop-back edge.</p>
+<h2 id="checkpointers-turn-a-graph-into-a-stateful-runtime">Checkpointers turn a graph into a stateful runtime</h2>
+<p>Everything up to now has been one-shot. You invoke the graph, it runs, you get a result, the state is gone. That is fine for a calculator. It is not fine for a chat. The thing that makes LangGraph stateful is checkpointers.</p>
+<p>A checkpointer is a piece of storage that LangGraph writes to after every node runs. It saves a full snapshot of state, grouped by <strong>thread</strong>. A thread is a conversation, a session, a run, whatever you want it to be, as long as it has a stable id.</p>
+<img src="/images/9-5-26-langgraph-part-1/checkpoint-thread.svg" alt="four checkpoint cards in a row labelled ckpt 1 through 4, connected by arrows, all under thread_id user-123">
+<p>Once you have a checkpointer, you get a pile of things basically for free:</p>
+<ul>
+<li>multi-turn conversations, because new input gets appended to the existing thread state via reducers</li>
+<li>crash recovery, because you can resume from the last checkpoint</li>
+<li>human-in-the-loop, because you can pause and come back later</li>
+<li>time travel, because you can re-run from any past checkpoint</li>
+<li>inspection, because you have the full state history sat there waiting to be read</li>
+</ul>
+<p>Adding one is two lines:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">MemorySaver</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">checkpointer</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">MemorySaver</span>();
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">app</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">graph</span>.<span style="color:#a6e22e">compile</span>({ <span style="color:#a6e22e">checkpointer</span> });
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">config</span> <span style="color:#f92672">=</span> { <span style="color:#a6e22e">configurable</span><span style="color:#f92672">:</span> { <span style="color:#a6e22e">thread_id</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;user-123&#34;</span> } };
+
+<span style="color:#a6e22e">await</span> <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">invoke</span>({ <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">HumanMessage</span>(<span style="color:#e6db74">&#34;hi&#34;</span>)] }, <span style="color:#a6e22e">config</span>);
+<span style="color:#a6e22e">await</span> <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">invoke</span>({ <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">HumanMessage</span>(<span style="color:#e6db74">&#34;how are you?&#34;</span>)] }, <span style="color:#a6e22e">config</span>);
+</code></pre></div><p>The second invoke does not pass the first message back in. It does not need to. The thread already has it. You just append the next user message and the reducer figures out the rest.</p>
+<p>The two debugging questions you will hit on day two:</p>
+<ol>
+<li><strong>My second invoke does not see the first message.</strong> Either you forgot the checkpointer, or you passed a different <code>thread_id</code> and got a fresh thread.</li>
+<li><strong>I lose state when I scale to multiple workers.</strong> You used <code>MemorySaver</code>, which is in-process. Swap it for <code>PostgresSaver</code> (or <code>SqliteSaver</code> if you really are running on one machine). I have done this on day one of every real project. I recommend doing the same.</li>
+</ol>
+<p>If you want preferences and facts to persist across conversations, that is a separate thing called the <code>Store</code>. The checkpointer is per-thread. The <code>Store</code> is across threads. Two-level memory, which is a nice mirror of how humans work, where checkpointer is &ldquo;what just happened in this conversation&rdquo; and the store is &ldquo;what we know about this user&rdquo;.</p>
+<h2 id="human-in-the-loop-with-interrupt">Human-in-the-loop with interrupt()</h2>
+<p>This is my favourite feature, and it is the one that finally convinced me LangGraph was built by people who had actually shipped agents.</p>
+<p>Sometimes you want a node to stop, get a human to look at something, and only continue once they have responded. The naive approach of &ldquo;use a callback&rdquo; or &ldquo;spin up a separate queue&rdquo; gets nasty very quickly because you have to think about what happens to the rest of the graph in the meantime. LangGraph has a much nicer answer: pause the graph, persist its state, hand control back to the caller. Resume whenever you like, even from a different process.</p>
+<img src="/images/9-5-26-langgraph-part-1/interrupt-timeline.svg" alt="timeline showing first invoke triggering an interrupt, days passing, then a resume invoke that loads the checkpoint and finishes the run">
+<p>There are two pieces:</p>
+<ul>
+<li><code>interrupt(value)</code> is called inside a node. It throws a signal that LangGraph catches. The graph saves a checkpoint, stops running, and returns the <code>value</code> to the caller as <code>result.__interrupt__</code>.</li>
+<li><code>new Command({ resume: value })</code> is what you pass to <code>.invoke()</code> later to continue. The original <code>interrupt()</code> call returns <code>value</code>, the node continues, and the graph runs on.</li>
+</ul>
+<p>The cleanest way to see it is a draft-and-approval flow:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-typescript" data-lang="typescript"><span style="color:#66d9ef">import</span> {
+  <span style="color:#a6e22e">StateGraph</span>, <span style="color:#a6e22e">START</span>, <span style="color:#a6e22e">END</span>, <span style="color:#a6e22e">MessagesAnnotation</span>,
+  <span style="color:#a6e22e">MemorySaver</span>, <span style="color:#a6e22e">interrupt</span>, <span style="color:#a6e22e">Command</span>,
+} <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;@langchain/langgraph&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">graph</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">StateGraph</span>(<span style="color:#a6e22e">MessagesAnnotation</span>)
+  .<span style="color:#a6e22e">addNode</span>(<span style="color:#e6db74">&#34;draft&#34;</span>, <span style="color:#a6e22e">async</span> (<span style="color:#a6e22e">state</span>) <span style="color:#f92672">=&gt;</span> {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">draft</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">invoke</span>(<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>);
+    <span style="color:#66d9ef">return</span> { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#a6e22e">draft</span>] };
+  })
+  .<span style="color:#a6e22e">addNode</span>(<span style="color:#e6db74">&#34;approval&#34;</span>, <span style="color:#a6e22e">async</span> (<span style="color:#a6e22e">state</span>) <span style="color:#f92672">=&gt;</span> {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">lastMsg</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">messages</span>.<span style="color:#a6e22e">at</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">decision</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">interrupt</span>({
+      <span style="color:#a6e22e">question</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;Approve this draft?&#34;</span>,
+      <span style="color:#a6e22e">draft</span>: <span style="color:#66d9ef">lastMsg.content</span>,
+    });
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">decision</span>.<span style="color:#a6e22e">approved</span>
+      <span style="color:#f92672">?</span> { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">AIMessage</span>(<span style="color:#e6db74">&#34;Sent: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">lastMsg</span>.<span style="color:#a6e22e">content</span>)] }
+      <span style="color:#f92672">:</span> { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">AIMessage</span>(<span style="color:#e6db74">&#34;Cancelled.&#34;</span>)] };
+  })
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#a6e22e">START</span>, <span style="color:#e6db74">&#34;draft&#34;</span>)
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;draft&#34;</span>, <span style="color:#e6db74">&#34;approval&#34;</span>)
+  .<span style="color:#a6e22e">addEdge</span>(<span style="color:#e6db74">&#34;approval&#34;</span>, <span style="color:#a6e22e">END</span>)
+  .<span style="color:#a6e22e">compile</span>({ <span style="color:#a6e22e">checkpointer</span>: <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">MemorySaver</span>() });
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">config</span> <span style="color:#f92672">=</span> { <span style="color:#a6e22e">configurable</span><span style="color:#f92672">:</span> { <span style="color:#a6e22e">thread_id</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;convo-1&#34;</span> } };
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">result1</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">await</span> <span style="color:#a6e22e">graph</span>.<span style="color:#a6e22e">invoke</span>(
+  { <span style="color:#a6e22e">messages</span><span style="color:#f92672">:</span> [<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">HumanMessage</span>(<span style="color:#e6db74">&#34;draft a tweet&#34;</span>)] },
+  <span style="color:#a6e22e">config</span>,
+);
+<span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">result1</span>.<span style="color:#a6e22e">__interrupt__</span>);
+
+<span style="color:#75715e">// time passes, human reviews on a phone, in Slack, wherever
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">await</span> <span style="color:#a6e22e">graph</span>.<span style="color:#a6e22e">invoke</span>(<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Command</span>({ <span style="color:#a6e22e">resume</span><span style="color:#f92672">:</span> { <span style="color:#a6e22e">approved</span>: <span style="color:#66d9ef">true</span> } }), <span style="color:#a6e22e">config</span>);
+</code></pre></div><p>The detail that does not jump out at you from the code is that the first <code>invoke</code> and the second <code>invoke</code> can be in completely different processes. The <code>thread_id</code> plus the checkpointer is the only thing connecting them. That is what unlocks the &ldquo;user gets a Slack notification, approves it from their phone three days later&rdquo; pattern, without any extra infrastructure.</p>
+<p>A few gotchas I have hit, none of them dealbreakers, all of them obvious once you have been bitten:</p>
+<ul>
+<li><strong>No checkpointer means no interrupt.</strong> You will get a runtime error. <code>interrupt()</code> is built directly on top of checkpoint persistence.</li>
+<li><strong>The whole node function runs again on resume.</strong> The <code>interrupt()</code> call looks like a synchronous return, but it really is a suspend point. Anything before the <code>interrupt()</code> runs on the first call AND on the resume. If you have side effects up there, you will fire them twice. Either move them after the <code>interrupt()</code>, or make them idempotent.</li>
+<li><strong>The resume value comes via the function return, not via state.</strong> If you want it in state, you have to put it there yourself: <code>return { messages: [new HumanMessage(decision)] }</code>.</li>
+<li><strong>Multiple interrupts in one node pause separately.</strong> Each <code>Command({ resume })</code> answers the next pending one.</li>
+</ul>
+<p><code>Command</code> does a couple of other interesting things which I will get into in part 2 when we talk about multi-agent setups, but <code>resume</code> is the one you reach for first.</p>
+<h2 id="where-this-leaves-us">Where this leaves us</h2>
+<p>If you have followed along this far, you have everything you need to build a useful agent:</p>
+<ul>
+<li>a four-primitive mental model of <code>StateGraph</code></li>
+<li>a clear picture of why state is channels with reducers, and the failure mode of forgetting that</li>
+<li>conditional edges, which are basically the only routing primitive you ever need</li>
+<li>checkpointers, which are the difference between a toy and a thing you can put on the internet</li>
+<li>human-in-the-loop, which is the difference between an agent that automates work and one that you trust enough to actually let near it</li>
+</ul>
+<p>Part 2 will pick up with streaming (both node-level and token-level), subgraphs (when to use them and when a function is fine), and the <code>Send</code> API for dynamic fan-out. If you want a sneak preview, the trick is the same one as everything else in this post: it is just channels and reducers.</p>
+
+</div>
+
+
+  </main>
+
+  <footer>
+  <div>
+    &copy; Matt Harrison 2026
+
+    &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank">CC BY-SA 4.0</a>
+
+    
+  </div>
+</footer>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js"
+          integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0="
+          crossorigin="anonymous"></script>
+
+  <script src="/js/blog.js"></script>
+
+  
+</body>
+</html>

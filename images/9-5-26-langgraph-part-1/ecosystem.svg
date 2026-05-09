@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="'Kalam','Caveat','Patrick Hand','Comic Sans MS',cursive">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap');</style>
+    <filter id="r1" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.6"/>
+    </filter>
+  </defs>
+  <rect width="720" height="360" fill="#fdfaf2"/>
+  <text x="360" y="40" font-size="22" font-weight="700" fill="#222" text-anchor="middle">the langchain neighbourhood</text>
+
+  <g filter="url(#r1)">
+    <rect x="40" y="80" width="180" height="90" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="270" y="80" width="180" height="90" rx="10" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="500" y="80" width="180" height="90" rx="10" fill="#e6f7e0" stroke="#222" stroke-width="2"/>
+    <rect x="40" y="220" width="180" height="90" rx="10" fill="#ffe6e6" stroke="#222" stroke-width="2"/>
+    <rect x="270" y="220" width="410" height="90" rx="10" fill="#f0e6ff" stroke="#222" stroke-width="2"/>
+  </g>
+
+  <text x="130" y="115" font-size="20" font-weight="700" text-anchor="middle">LangChain</text>
+  <text x="130" y="140" font-size="14" text-anchor="middle">component library</text>
+  <text x="130" y="158" font-size="14" text-anchor="middle">(LLMs, retrievers...)</text>
+
+  <text x="360" y="115" font-size="20" font-weight="700" text-anchor="middle">LangGraph</text>
+  <text x="360" y="140" font-size="14" text-anchor="middle">graph runtime</text>
+  <text x="360" y="158" font-size="14" text-anchor="middle">(state + nodes + edges)</text>
+
+  <text x="590" y="115" font-size="20" font-weight="700" text-anchor="middle">LangSmith</text>
+  <text x="590" y="140" font-size="14" text-anchor="middle">tracing &amp; evals</text>
+  <text x="590" y="158" font-size="14" text-anchor="middle">(see what happened)</text>
+
+  <text x="130" y="255" font-size="20" font-weight="700" text-anchor="middle">deepagents</text>
+  <text x="130" y="280" font-size="14" text-anchor="middle">opinionated preset</text>
+  <text x="130" y="298" font-size="14" text-anchor="middle">on top of LangGraph</text>
+
+  <text x="475" y="255" font-size="20" font-weight="700" text-anchor="middle">LangGraph Platform</text>
+  <text x="475" y="280" font-size="14" text-anchor="middle">hosted runtime if you'd rather not</text>
+  <text x="475" y="298" font-size="14" text-anchor="middle">babysit the deployment yourself</text>
+
+  <g filter="url(#r1)" stroke="#222" stroke-width="2" fill="none">
+    <path d="M130 220 C 130 195, 220 180, 270 170"/>
+    <path d="M270 130 L 220 130"/>
+    <path d="M450 130 L 500 130"/>
+    <path d="M450 170 C 480 200, 520 215, 550 220"/>
+  </g>
+</svg>

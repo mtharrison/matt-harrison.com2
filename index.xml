@@ -12,6 +12,15 @@
     
     
     <item>
+      <title>LangGraph from scratch, part 1: state, graphs and humans in the loop</title>
+      <link>https://matt-harrison.com/posts/9-5-26-langgraph-part-1/</link>
+      <pubDate>Sat, 09 May 2026 11:00:00 +0100</pubDate>
+      
+      <guid>https://matt-harrison.com/posts/9-5-26-langgraph-part-1/</guid>
+      <description>I have been building agents with LangGraph for a while and finally sat down to explain the parts that took me longest to internalise. Part 1 covers everything up to and including human-in-the-loop.</description>
+    </item>
+    
+    <item>
       <title>Obsidian Headless let me rebuild Things3 Quick Entry for my Obsidian bullet journal</title>
       <link>https://matt-harrison.com/posts/15-3-26-obsidian-capture/</link>
       <pubDate>Sun, 15 Mar 2026 20:30:28 +0000</pubDate>
