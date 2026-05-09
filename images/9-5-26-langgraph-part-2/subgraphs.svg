@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="'Kalam','Caveat','Patrick Hand','Comic Sans MS',cursive">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap');</style>
+    <filter id="rC" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="14"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.7"/>
+    </filter>
+    <marker id="ahC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+  <rect width="720" height="380" fill="#fdfaf2"/>
+  <text x="360" y="38" font-size="22" font-weight="700" fill="#222" text-anchor="middle">a subgraph is just a compiled graph used as a node</text>
+
+  <g filter="url(#rC)">
+    <rect x="30" y="70" width="660" height="280" rx="14" fill="#fff8e1" stroke="#222" stroke-width="2"/>
+    <ellipse cx="80" cy="200" rx="35" ry="25" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="160" y="170" width="120" height="60" rx="10" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+
+    <rect x="320" y="120" width="280" height="160" rx="12" fill="#e6f7e0" stroke="#222" stroke-width="2" stroke-dasharray="6 4"/>
+    <rect x="345" y="160" width="100" height="50" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+    <rect x="475" y="160" width="100" height="50" rx="8" fill="#fff" stroke="#222" stroke-width="2"/>
+
+    <ellipse cx="660" cy="200" rx="25" ry="20" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+  </g>
+
+  <text x="80" y="206" font-size="15" font-weight="700" text-anchor="middle">START</text>
+  <text x="220" y="200" font-size="15" font-weight="700" text-anchor="middle">setup</text>
+  <text x="220" y="218" font-size="12" text-anchor="middle">(outer)</text>
+
+  <text x="460" y="105" font-size="14" font-weight="700" fill="#444" text-anchor="middle">research subgraph (a Runnable)</text>
+  <text x="395" y="180" font-size="13" font-weight="700" text-anchor="middle">retrieve</text>
+  <text x="395" y="198" font-size="11" text-anchor="middle">(inner)</text>
+  <text x="525" y="180" font-size="13" font-weight="700" text-anchor="middle">summarise</text>
+  <text x="525" y="198" font-size="11" text-anchor="middle">(inner)</text>
+
+  <text x="660" y="206" font-size="14" font-weight="700" text-anchor="middle">END</text>
+
+  <g stroke="#222" stroke-width="2" fill="none" filter="url(#rC)">
+    <path d="M115 200 L160 200" marker-end="url(#ahC)"/>
+    <path d="M280 200 L320 200" marker-end="url(#ahC)"/>
+    <path d="M445 185 L475 185" marker-end="url(#ahC)"/>
+    <path d="M600 200 L635 200" marker-end="url(#ahC)"/>
+  </g>
+
+  <text x="360" y="320" font-size="14" fill="#444" text-anchor="middle">addNode("research", compiledSubgraph), same interface as any other node.</text>
+  <text x="360" y="340" font-size="14" fill="#444" text-anchor="middle">shared messages channel flows in and out, the inner reducers do their thing.</text>
+</svg>
