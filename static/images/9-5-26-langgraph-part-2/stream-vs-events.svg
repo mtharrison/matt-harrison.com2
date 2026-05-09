@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" font-family="'Kalam','Caveat','Patrick Hand','Comic Sans MS',cursive">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap');</style>
+    <filter id="rA" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="3"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.7"/>
+    </filter>
+    <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+  <rect width="720" height="380" fill="#fdfaf2"/>
+  <text x="360" y="38" font-size="22" font-weight="700" fill="#222" text-anchor="middle">.stream() is chunky, .streamEvents() is fine grained</text>
+
+  <text x="180" y="80" font-size="18" font-weight="700" text-anchor="middle">.stream()</text>
+  <text x="540" y="80" font-size="18" font-weight="700" text-anchor="middle">.streamEvents()</text>
+
+  <g filter="url(#rA)">
+    <rect x="50" y="100" width="260" height="60" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="50" y="180" width="260" height="60" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="50" y="260" width="260" height="60" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+
+    <rect x="410" y="100" width="260" height="36" rx="8" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="410" y="146" width="260" height="36" rx="8" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="410" y="192" width="260" height="36" rx="8" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="410" y="238" width="260" height="36" rx="8" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="410" y="284" width="260" height="36" rx="8" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+  </g>
+
+  <text x="180" y="135" font-size="15" text-anchor="middle">{ agent: { messages: [...] } }</text>
+  <text x="180" y="215" font-size="15" text-anchor="middle">{ tools: { messages: [...] } }</text>
+  <text x="180" y="295" font-size="15" text-anchor="middle">{ agent: { messages: [...] } }</text>
+
+  <text x="540" y="123" font-size="13" text-anchor="middle">on_chat_model_start</text>
+  <text x="540" y="169" font-size="13" text-anchor="middle">on_chat_model_stream "Hel"</text>
+  <text x="540" y="215" font-size="13" text-anchor="middle">on_chat_model_stream "lo"</text>
+  <text x="540" y="261" font-size="13" text-anchor="middle">on_chat_model_end</text>
+  <text x="540" y="307" font-size="13" text-anchor="middle">on_tool_start ...</text>
+
+  <text x="180" y="345" font-size="13" fill="#666" text-anchor="middle">one event per node finishing</text>
+  <text x="540" y="345" font-size="13" fill="#666" text-anchor="middle">one event per token + tool + lifecycle</text>
+</svg>

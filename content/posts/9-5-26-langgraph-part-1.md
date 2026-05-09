@@ -361,4 +361,4 @@ If you have followed along this far, you have everything you need to build a use
 - checkpointers, which are the difference between a toy and a thing you can put on the internet
 - human-in-the-loop, which is the difference between an agent that automates work and one that you trust enough to actually let near it
 
-Part 2 will pick up with streaming (both node-level and token-level), subgraphs (when to use them and when a function is fine), and the `Send` API for dynamic fan-out. If you want a sneak preview, the trick is the same one as everything else in this post: it is just channels and reducers.
+[Part 2](/posts/9-5-26-langgraph-part-2/) picks up with streaming (both node-level and token-level), subgraphs (when to use them and when a function is fine), and the `Send` API for dynamic fan-out. If you want a sneak preview, the trick is the same one as everything else in this post: it is just channels and reducers.

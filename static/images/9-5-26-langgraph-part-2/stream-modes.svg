@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" font-family="'Kalam','Caveat','Patrick Hand','Comic Sans MS',cursive">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&amp;display=swap');</style>
+    <filter id="rB" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="9"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.6"/>
+    </filter>
+  </defs>
+  <rect width="720" height="360" fill="#fdfaf2"/>
+  <text x="360" y="38" font-size="22" font-weight="700" fill="#222" text-anchor="middle">five flavours of .stream()</text>
+
+  <g filter="url(#rB)">
+    <rect x="40" y="80" width="200" height="120" rx="10" fill="#fff5d6" stroke="#222" stroke-width="2"/>
+    <rect x="260" y="80" width="200" height="120" rx="10" fill="#d6ecff" stroke="#222" stroke-width="2"/>
+    <rect x="480" y="80" width="200" height="120" rx="10" fill="#e6f7e0" stroke="#222" stroke-width="2"/>
+    <rect x="150" y="220" width="200" height="120" rx="10" fill="#ffe6f0" stroke="#222" stroke-width="2"/>
+    <rect x="370" y="220" width="200" height="120" rx="10" fill="#fff0e0" stroke="#222" stroke-width="2"/>
+  </g>
+
+  <text x="140" y="115" font-size="18" font-weight="700" text-anchor="middle">"updates"</text>
+  <text x="140" y="145" font-size="13" text-anchor="middle">{ node: delta }</text>
+  <text x="140" y="170" font-size="13" text-anchor="middle">compact, what changed,</text>
+  <text x="140" y="188" font-size="13" text-anchor="middle">the default for a reason</text>
+
+  <text x="360" y="115" font-size="18" font-weight="700" text-anchor="middle">"values"</text>
+  <text x="360" y="145" font-size="13" text-anchor="middle">full state every step</text>
+  <text x="360" y="170" font-size="13" text-anchor="middle">easy to consume,</text>
+  <text x="360" y="188" font-size="13" text-anchor="middle">noisier on the wire</text>
+
+  <text x="580" y="115" font-size="18" font-weight="700" text-anchor="middle">"messages"</text>
+  <text x="580" y="145" font-size="13" text-anchor="middle">[message, metadata]</text>
+  <text x="580" y="170" font-size="13" text-anchor="middle">one per AI message</text>
+  <text x="580" y="188" font-size="13" text-anchor="middle">handy for chat UIs</text>
+
+  <text x="250" y="255" font-size="18" font-weight="700" text-anchor="middle">"debug"</text>
+  <text x="250" y="285" font-size="13" text-anchor="middle">internals + checkpoints</text>
+  <text x="250" y="310" font-size="13" text-anchor="middle">when the graph itself</text>
+  <text x="250" y="328" font-size="13" text-anchor="middle">is the bug</text>
+
+  <text x="470" y="255" font-size="18" font-weight="700" text-anchor="middle">"custom"</text>
+  <text x="470" y="285" font-size="13" text-anchor="middle">whatever you dispatch</text>
+  <text x="470" y="310" font-size="13" text-anchor="middle">progress signals from</text>
+  <text x="470" y="328" font-size="13" text-anchor="middle">inside a long node</text>
+</svg>
